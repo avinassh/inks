@@ -247,9 +247,14 @@ func showrss(w http.ResponseWriter, r *http.Request) {
 	links, _ := getlinks("", 0)
 	for _, link := range links {
 		tag := fmt.Sprintf("tag:%s:inks-%d", tagName, link.ID)
+		summary := string(link.Summary)
+		if link.Source != "" {
+			summary += "\n<p>source: " + link.Source
+		}
 		feed.Items = append(feed.Items, &RssItem{
 			Title:       link.Title,
 			Description: RssCData{string(link.Summary)},
+			Category:    link.Tags,
 			Link:        link.URL,
 			PubDate:     link.Posted.Format(time.RFC1123),
 			Guid:        RssGuid{Value: tag},

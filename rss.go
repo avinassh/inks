@@ -46,6 +46,7 @@ type RssItem struct {
 	XMLName     xml.Name `xml:"item"`
 	Title       string   `xml:"title"`
 	Description RssCData `xml:"description"`
+	Category    []string `xml:"category"`
 	Link        string   `xml:"link"`
 	PubDate     string   `xml:"pubDate"`
 	Guid        RssGuid
