@@ -1,0 +1,7 @@
+github.com/gorilla/mux v1.7.1 h1:Dw4jY2nghMMRsh1ol8dv1axHkDwMQK2DHerMNJsIpJU=
+github.com/gorilla/mux v1.7.1/go.mod h1:1lud6UwP+6orDFRuTfBEV8e9/aOM/c4fVVCaMa2zaAs=
+golang.org/x/crypto v0.0.0-20190417174047-f416ebab96af h1:6qGQw30u837TXZbCmLFR9AVA+RjJU1LIbvk0oIkDZGY=
+golang.org/x/crypto v0.0.0-20190417174047-f416ebab96af/go.mod h1:WFFai1msRO1wXaEeE5yQxYXgSfI8pQAWXbQop6sCtWE=
+golang.org/x/sys v0.0.0-20190403152447-81d4e9dc473e/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
+humungus.tedunangst.com/r/go-sqlite3 v1.1.3 h1:G2N4wzDS0NbuvrZtQJhh4F+3X+s7BF8b9ga8k38geUI=
+humungus.tedunangst.com/r/go-sqlite3 v1.1.3/go.mod h1:FtEEmQM7U2Ey1TuEEOyY1BmphTZnmiEjPsNLEAkpf/M=

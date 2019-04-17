@@ -1,0 +1,19 @@
+<head>
+<title>inks</title>
+<link href="/style.css{{ .StyleParam }}" rel="stylesheet">
+<link href="/rss" rel="alternate" type="application/rss+xml" title="inks rss">
+<link href="/icon.png" rel="icon">
+</head>
+<body>
+<div class="header">
+<span><a href="/">inks</a></span>
+<span><a href="/rss">rss</a></span>
+<span><a href="/random">random</a></span>
+{{ if .UserInfo }}
+<span><a href="/addlink">add link</a></span>
+<span><a href="/logout?CSRF={{ .LogoutCSRF }}">logout</a></span>
+{{ end }}
+<form action="/search" method="GET">
+<input tabindex=10 type="text" name="q" autocomplete=off size=18 placeholder="search">
+</form>
+</div>

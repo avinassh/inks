@@ -1,0 +1,72 @@
+body {
+	background: #121;
+	font-size: 1.5em;
+	font-family: monospace;
+	margin: 2em;
+}
+:focus {
+	outline: 2px solid #aea;
+}
+a {
+	color: #aea;
+}
+.header {
+	max-width: 1260px;
+	margin: auto;
+	margin-bottom: 2em;
+}
+.header form {
+	display: inline;
+}
+.header span, .header form {
+	margin-right: 1em;
+}
+.main {
+	max-width: 1260px;
+	margin: auto;
+}
+.link {
+	padding: 0em;
+	color: #8d8;
+	background: #121;
+	border: 2px solid #474;
+	margin-bottom: 2em;
+}
+
+div.link p {
+	margin: 0;
+	margin-left: 2em;
+}
+.link .title {
+	font-size: 1.5em;
+	margin-left: 0em;
+	margin-bottom: 1em;
+}
+.link .summary p {
+	margin-top: 1em;
+	margin-left: 2em;
+}
+
+form.link {
+	padding: 1em;
+	padding-top: 0em;
+	padding-bottom: 0em;
+	font-size: 1.0em;
+	margin: 0em;
+	border: 2px solid #aea;
+}
+input, textarea {
+	background: #121;
+	color: #aea;
+	font-size: 0.9em;
+	font-family: monospace;
+	border: 2px solid #474;
+	padding: 0.5em;
+}
+form.link input {
+	width: 80%;
+}
+form.link textarea {
+	height: 12em;
+	width: 80%;
+}

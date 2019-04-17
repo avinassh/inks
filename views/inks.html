@@ -1,0 +1,21 @@
+{{ template "header.html" . }}
+<div class="main">
+{{ range .Links }}
+<div class="link">
+<p class="title">{{ .Title }}
+<p class="url"><a href="{{ .URL }}">{{ .URL }}</a> [<span href="/site/{{ .Site }}">{{ .Site }}</span>]
+<p>{{ .Posted.Format "2006-01-02 15:04" }}
+<p class="tags">tags: 
+{{ range .Tags }}
+<span class="tag">{{ . }}</span>
+{{ end }}
+<div class="summary">
+<p>
+{{ .Summary }}
+</div>
+<a href="/l/{{ .ID }}">#</a>
+</div>
+{{ end }}
+</div>
+</body>
+</html>
