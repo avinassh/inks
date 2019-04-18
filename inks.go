@@ -92,34 +92,7 @@ func taglinks(links []*Link) {
 	}
 }
 
-func getlinks(lastlink int64) ([]*Link, int64) {
-	if lastlink == 0 {
-		lastlink = 123456789012
-	}
-	rows, err := stmtGetLinks.Query(lastlink)
-	return readlinks(rows, err)
-}
-
-func linksfortag(tagname string, lastlink int64) ([]*Link, int64) {
-	if lastlink == 0 {
-		lastlink = 123456789012
-	}
-	rows, err := stmtTagLinks.Query(tagname, lastlink)
-	return readlinks(rows, err)
-}
-
-func linksforsite(sitename string, lastlink int64) ([]*Link, int64) {
-	if lastlink == 0 {
-		lastlink = 123456789012
-	}
-	rows, err := stmtSiteLinks.Query(sitename, lastlink)
-	return readlinks(rows, err)
-}
-
 func searchlinks(search string, lastlink int64) ([]*Link, int64) {
-	if lastlink == 0 {
-		lastlink = 123456789012
-	}
 	if !regexp.MustCompile(`^["[:alnum:]_ -]*$`).MatchString(search) {
 		search = ""
 	}
@@ -153,27 +126,13 @@ func readlinks(rows *sql.Rows, err error) ([]*Link, int64) {
 			continue
 		}
 		link.Posted, _ = time.Parse(dbtimeformat, dt)
+		link.Summary = htmlify(string(link.Summary))
 		links = append(links, &link)
 		lastlink = link.ID
 	}
 	rows.Close()
 	taglinks(links)
 	return links, lastlink
-}
-
-func getlink(linkid int64) []*Link {
-	row := stmtGetLink.QueryRow(linkid)
-	var link Link
-	var dt string
-	err := row.Scan(&link.ID, &link.URL, &dt, &link.Source, &link.Site, &link.Title, &link.Summary)
-	if err != nil {
-		log.Printf("error scanning link: %s", err)
-		return nil
-	}
-	link.Posted, _ = time.Parse(dbtimeformat, dt)
-	links := []*Link{&link}
-	taglinks(links)
-	return links
 }
 
 func showlinks(w http.ResponseWriter, r *http.Request) {
@@ -185,18 +144,27 @@ func showlinks(w http.ResponseWriter, r *http.Request) {
 
 	var links []*Link
 	if linkid > 0 {
-		links = getlink(linkid)
-	} else if search != "" {
-		links, lastlink = searchlinks(search, lastlink)
-	} else if tagname != "" {
-		links, lastlink = linksfortag(tagname, lastlink)
-	} else if sitename != "" {
-		links, lastlink = linksforsite(sitename, lastlink)
+		rows, err := stmtGetLink.Query(linkid)
+		links, _ = readlinks(rows, err)
+	} else if r.URL.Path == "/random" {
+		rows, err := stmtRandomLinks.Query()
+		links, _ = readlinks(rows, err)
 	} else {
-		links, lastlink = getlinks(lastlink)
-	}
-	for _, l := range links {
-		l.Summary = htmlify(string(l.Summary))
+		if lastlink == 0 {
+			lastlink = 123456789012
+		}
+		if search != "" {
+			links, lastlink = searchlinks(search, lastlink)
+		} else if tagname != "" {
+			rows, err := stmtTagLinks.Query(tagname, lastlink)
+			links, lastlink = readlinks(rows, err)
+		} else if sitename != "" {
+			rows, err := stmtSiteLinks.Query(sitename, lastlink)
+			links, lastlink = readlinks(rows, err)
+		} else {
+			rows, err := stmtGetLinks.Query(lastlink)
+			links, lastlink = readlinks(rows, err)
+		}
 	}
 
 	if GetUserInfo(r) == nil {
@@ -207,18 +175,6 @@ func showlinks(w http.ResponseWriter, r *http.Request) {
 	templinfo["Links"] = links
 	templinfo["LastLink"] = lastlink
 	err := readviews.ExecuteTemplate(w, "inks.html", templinfo)
-	if err != nil {
-		log.Printf("error templating inks: %s", err)
-	}
-}
-
-func showrandom(w http.ResponseWriter, r *http.Request) {
-	rows, err := stmtRandomLinks.Query()
-	links, _ := readlinks(rows, err)
-
-	templinfo := getInfo(r)
-	templinfo["Links"] = links
-	err = readviews.ExecuteTemplate(w, "inks.html", templinfo)
 	if err != nil {
 		log.Printf("error templating inks: %s", err)
 	}
@@ -283,7 +239,8 @@ func showrss(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 	var modtime time.Time
-	links, _ := getlinks(0)
+	rows, err := stmtGetLinks.Query(123456789012)
+	links, _ := readlinks(rows, err)
 	for _, link := range links {
 		tag := fmt.Sprintf("tag:%s:inks-%d", tagName, link.ID)
 		summary := string(link.Summary)
@@ -305,7 +262,7 @@ func showrss(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "max-age=300")
 	w.Header().Set("Last-Modified", modtime.Format(http.TimeFormat))
 
-	err := feed.Write(w)
+	err = feed.Write(w)
 	if err != nil {
 		log.Printf("error writing rss: %s", err)
 	}
@@ -393,7 +350,7 @@ func serve() {
 	getters.HandleFunc("/l/{linkid:[0-9]+}", showlinks)
 	getters.HandleFunc("/site/{sitename:[[:alnum:].-]+}", showlinks)
 	getters.HandleFunc("/tag/{tagname:[[:alnum:].-]+}", showlinks)
-	getters.HandleFunc("/random", showrandom)
+	getters.HandleFunc("/random", showlinks)
 	getters.HandleFunc("/rss", showrss)
 	getters.HandleFunc("/style.css", servecss)
 	getters.HandleFunc("/login", servehtml)
