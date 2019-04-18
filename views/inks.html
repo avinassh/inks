@@ -3,7 +3,7 @@
 {{ range .Links }}
 <div class="link">
 <p class="title">{{ .Title }}
-<p class="url"><a href="{{ .URL }}">{{ .URL }}</a> [<span href="/site/{{ .Site }}">{{ .Site }}</span>]
+<p class="url"><a href="{{ .URL }}">{{ .URL }}</a> [<a href="/site/{{ .Site }}">{{ .Site }}</a>]
 <p>{{ .Posted.Format "2006-01-02 15:04" }}
 <p class="tags">tags: 
 {{ range .Tags }}
