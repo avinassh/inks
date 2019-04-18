@@ -4,6 +4,8 @@ create virtual table linktext using fts4 (title, summary, remnants);
 create table tags (tagid integer primary key, linkid integer, tag text);
 
 create index idx_linkstextid on links(textid);
+create index idx_linkssite on links(site);
+create index idx_linkssource on links(source);
 create index idx_tagstag on tags(tag);
 create index idx_tagslinkid on tags(linkid);
 
