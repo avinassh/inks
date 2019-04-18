@@ -3,6 +3,7 @@ body {
 	font-size: 1.5em;
 	font-family: monospace;
 	margin: 2em;
+	word-wrap: break-word;
 }
 :focus {
 	outline: 2px solid #aea;
@@ -36,6 +37,7 @@ a {
 div.link p {
 	margin: 0;
 	margin-left: 2em;
+	margin-right: 2em;
 }
 .link .title {
 	font-size: 1.5em;
