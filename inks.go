@@ -212,6 +212,18 @@ func showlinks(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func showrandom(w http.ResponseWriter, r *http.Request) {
+	rows, err := stmtRandomLinks.Query()
+	links, _ := readlinks(rows, err)
+
+	templinfo := getInfo(r)
+	templinfo["Links"] = links
+	err = readviews.ExecuteTemplate(w, "inks.html", templinfo)
+	if err != nil {
+		log.Printf("error templating inks: %s", err)
+	}
+}
+
 var re_sitename = regexp.MustCompile("//([^/]+)/")
 
 func savelink(w http.ResponseWriter, r *http.Request) {
@@ -255,10 +267,6 @@ func savelink(w http.ResponseWriter, r *http.Request) {
 		stmtSaveTag.Exec(linkid, t)
 	}
 	http.Redirect(w, r, "/", http.StatusSeeOther)
-}
-
-func showrandom(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 }
 
 func showrss(w http.ResponseWriter, r *http.Request) {
@@ -325,6 +333,7 @@ func serveform(w http.ResponseWriter, r *http.Request) {
 
 var stmtGetLink, stmtGetLinks, stmtSearchLinks, stmtSaveSummary, stmtSaveLink *sql.Stmt
 var stmtTagLinks, stmtSiteLinks, stmtDeleteTags, stmtUpdateLink, stmtSaveTag *sql.Stmt
+var stmtRandomLinks *sql.Stmt
 
 func preparetodie(db *sql.DB, s string) *sql.Stmt {
 	stmt, err := db.Prepare(s)
@@ -340,6 +349,7 @@ func prepareStmts(db *sql.DB) {
 	stmtSearchLinks = preparetodie(db, "select linkid, url, dt, source, site, title, summary from links join linktext on links.textid = linktext.docid where linktext match ? and linkid < ? order by linkid desc limit 20")
 	stmtTagLinks = preparetodie(db, "select linkid, url, dt, source, site, title, summary from links join linktext on links.textid = linktext.docid where linkid in (select linkid from tags where tag = ?) and linkid < ? order by linkid desc limit 20")
 	stmtSiteLinks = preparetodie(db, "select linkid, url, dt, source, site, title, summary from links join linktext on links.textid = linktext.docid where site = ? and linkid < ? order by linkid desc limit 20")
+	stmtRandomLinks = preparetodie(db, "select linkid, url, dt, source, site, title, summary from links join linktext on links.textid = linktext.docid order by random() limit 20")
 	stmtSaveSummary = preparetodie(db, "insert into linktext (title, summary, remnants) values (?, ?, ?)")
 	stmtSaveLink = preparetodie(db, "insert into links (textid, url, dt, source, site) values (?, ?, ?, ?, ?)")
 	stmtUpdateLink = preparetodie(db, "update links set textid = ?, url = ?, source = ?, site = ? where linkid = ?")
