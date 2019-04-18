@@ -306,7 +306,7 @@ func preparetodie(db *sql.DB, s string) *sql.Stmt {
 func prepareStmts(db *sql.DB) {
 	stmtGetLink = preparetodie(db, "select linkid, url, dt, source, site, title, summary from links join linktext on links.textid = linktext.docid where linkid = ?")
 	stmtGetLinks = preparetodie(db, "select linkid, url, dt, source, site, title, summary from links join linktext on links.textid = linktext.docid where linkid < ? order by linkid desc limit 20")
-	stmtSearchLinks = preparetodie(db, "")
+	stmtSearchLinks = preparetodie(db, "select linkid, url, dt, source, site, title, summary from links join linktext on links.textid = linktext.docid where linktext match ? and linkid < ? order by linkid desc limit 20")
 	stmtSaveSummary = preparetodie(db, "insert into linktext (title, summary, remnants) values (?, ?, ?)")
 	stmtSaveLink = preparetodie(db, "insert into links (textid, url, dt, source, site) values (?, ?, ?, ?, ?)")
 	stmtUpdateLink = preparetodie(db, "update links set textid = ?, url = ?, source = ?, site = ? where linkid = ?")
@@ -345,6 +345,7 @@ func serve() {
 
 	getters := mux.Methods("GET").Subrouter()
 	getters.HandleFunc("/", showlinks)
+	getters.HandleFunc("/search", showlinks)
 	getters.HandleFunc("/before/{lastlink:[0-9]+}", showlinks)
 	getters.HandleFunc("/l/{linkid:[0-9]+}", showlinks)
 	getters.HandleFunc("/random", showrandom)
