@@ -100,6 +100,14 @@ func getlinks(lastlink int64) ([]*Link, int64) {
 	return readlinks(rows, err)
 }
 
+func linksfortag(tagname string, lastlink int64) ([]*Link, int64) {
+	if lastlink == 0 {
+		lastlink = 123456789012
+	}
+	rows, err := stmtTagLinks.Query(tagname, lastlink)
+	return readlinks(rows, err)
+}
+
 func linksforsite(sitename string, lastlink int64) ([]*Link, int64) {
 	if lastlink == 0 {
 		lastlink = 123456789012
@@ -172,6 +180,7 @@ func showlinks(w http.ResponseWriter, r *http.Request) {
 	lastlink, _ := strconv.ParseInt(mux.Vars(r)["lastlink"], 10, 0)
 	linkid, _ := strconv.ParseInt(mux.Vars(r)["linkid"], 10, 0)
 	sitename := mux.Vars(r)["sitename"]
+	tagname := mux.Vars(r)["tagname"]
 	search := r.FormValue("q")
 
 	var links []*Link
@@ -179,6 +188,8 @@ func showlinks(w http.ResponseWriter, r *http.Request) {
 		links = getlink(linkid)
 	} else if search != "" {
 		links, lastlink = searchlinks(search, lastlink)
+	} else if tagname != "" {
+		links, lastlink = linksfortag(tagname, lastlink)
 	} else if sitename != "" {
 		links, lastlink = linksforsite(sitename, lastlink)
 	} else {
@@ -313,7 +324,7 @@ func serveform(w http.ResponseWriter, r *http.Request) {
 }
 
 var stmtGetLink, stmtGetLinks, stmtSearchLinks, stmtSaveSummary, stmtSaveLink *sql.Stmt
-var stmtSiteLinks, stmtDeleteTags, stmtUpdateLink, stmtSaveTag *sql.Stmt
+var stmtTagLinks, stmtSiteLinks, stmtDeleteTags, stmtUpdateLink, stmtSaveTag *sql.Stmt
 
 func preparetodie(db *sql.DB, s string) *sql.Stmt {
 	stmt, err := db.Prepare(s)
@@ -327,6 +338,7 @@ func prepareStmts(db *sql.DB) {
 	stmtGetLink = preparetodie(db, "select linkid, url, dt, source, site, title, summary from links join linktext on links.textid = linktext.docid where linkid = ?")
 	stmtGetLinks = preparetodie(db, "select linkid, url, dt, source, site, title, summary from links join linktext on links.textid = linktext.docid where linkid < ? order by linkid desc limit 20")
 	stmtSearchLinks = preparetodie(db, "select linkid, url, dt, source, site, title, summary from links join linktext on links.textid = linktext.docid where linktext match ? and linkid < ? order by linkid desc limit 20")
+	stmtTagLinks = preparetodie(db, "select linkid, url, dt, source, site, title, summary from links join linktext on links.textid = linktext.docid where linkid in (select linkid from tags where tag = ?) and linkid < ? order by linkid desc limit 20")
 	stmtSiteLinks = preparetodie(db, "select linkid, url, dt, source, site, title, summary from links join linktext on links.textid = linktext.docid where site = ? and linkid < ? order by linkid desc limit 20")
 	stmtSaveSummary = preparetodie(db, "insert into linktext (title, summary, remnants) values (?, ?, ?)")
 	stmtSaveLink = preparetodie(db, "insert into links (textid, url, dt, source, site) values (?, ?, ?, ?, ?)")
@@ -370,6 +382,7 @@ func serve() {
 	getters.HandleFunc("/before/{lastlink:[0-9]+}", showlinks)
 	getters.HandleFunc("/l/{linkid:[0-9]+}", showlinks)
 	getters.HandleFunc("/site/{sitename:[[:alnum:].-]+}", showlinks)
+	getters.HandleFunc("/tag/{tagname:[[:alnum:].-]+}", showlinks)
 	getters.HandleFunc("/random", showrandom)
 	getters.HandleFunc("/rss", showrss)
 	getters.HandleFunc("/style.css", servecss)

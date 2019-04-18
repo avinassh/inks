@@ -7,7 +7,7 @@
 <p>{{ .Posted.Format "2006-01-02 15:04" }}
 <p class="tags">tags: 
 {{ range .Tags }}
-<span class="tag">{{ . }}</span>
+<a class="tag" href="/tag/{{ . }}">{{ . }}</a>
 {{ end }}
 <div class="summary">
 <p>
