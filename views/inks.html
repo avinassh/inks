@@ -12,6 +12,9 @@
 <div class="summary">
 <p>
 {{ .Summary }}
+{{ if .Source }}
+<p>source: <a href="/source/{{ .Source }}">{{ .Source }}</a>
+{{ end }}
 </div>
 <a href="/l/{{ .ID }}">#</a>
 </div>

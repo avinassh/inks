@@ -138,6 +138,7 @@ func readlinks(rows *sql.Rows, err error) ([]*Link, int64) {
 func showlinks(w http.ResponseWriter, r *http.Request) {
 	lastlink, _ := strconv.ParseInt(mux.Vars(r)["lastlink"], 10, 0)
 	linkid, _ := strconv.ParseInt(mux.Vars(r)["linkid"], 10, 0)
+	sourcename := mux.Vars(r)["sourcename"]
 	sitename := mux.Vars(r)["sitename"]
 	tagname := mux.Vars(r)["tagname"]
 	search := r.FormValue("q")
@@ -157,6 +158,9 @@ func showlinks(w http.ResponseWriter, r *http.Request) {
 			links, lastlink = searchlinks(search, lastlink)
 		} else if tagname != "" {
 			rows, err := stmtTagLinks.Query(tagname, lastlink)
+			links, lastlink = readlinks(rows, err)
+		} else if sourcename != "" {
+			rows, err := stmtSourceLinks.Query(sourcename, lastlink)
 			links, lastlink = readlinks(rows, err)
 		} else if sitename != "" {
 			rows, err := stmtSiteLinks.Query(sitename, lastlink)
@@ -191,7 +195,7 @@ func savelink(w http.ResponseWriter, r *http.Request) {
 	linkid, _ := strconv.ParseInt(r.FormValue("linkid"), 10, 0)
 
 	title = strings.TrimSpace(title)
-	if strings.ToUpper(title) == title  && strings.IndexByte(title, ' ') != -1 {
+	if strings.ToUpper(title) == title && strings.IndexByte(title, ' ') != -1 {
 		title = strings.Title(strings.ToLower(title))
 	}
 	summary = strings.TrimSpace(summary)
@@ -292,7 +296,7 @@ func serveform(w http.ResponseWriter, r *http.Request) {
 }
 
 var stmtGetLink, stmtGetLinks, stmtSearchLinks, stmtSaveSummary, stmtSaveLink *sql.Stmt
-var stmtTagLinks, stmtSiteLinks, stmtDeleteTags, stmtUpdateLink, stmtSaveTag *sql.Stmt
+var stmtTagLinks, stmtSiteLinks, stmtSourceLinks, stmtDeleteTags, stmtUpdateLink, stmtSaveTag *sql.Stmt
 var stmtRandomLinks *sql.Stmt
 
 func preparetodie(db *sql.DB, s string) *sql.Stmt {
@@ -308,6 +312,7 @@ func prepareStmts(db *sql.DB) {
 	stmtGetLinks = preparetodie(db, "select linkid, url, dt, source, site, title, summary from links join linktext on links.textid = linktext.docid where linkid < ? order by linkid desc limit 20")
 	stmtSearchLinks = preparetodie(db, "select linkid, url, dt, source, site, title, summary from links join linktext on links.textid = linktext.docid where linktext match ? and linkid < ? order by linkid desc limit 20")
 	stmtTagLinks = preparetodie(db, "select linkid, url, dt, source, site, title, summary from links join linktext on links.textid = linktext.docid where linkid in (select linkid from tags where tag = ?) and linkid < ? order by linkid desc limit 20")
+	stmtSourceLinks = preparetodie(db, "select linkid, url, dt, source, site, title, summary from links join linktext on links.textid = linktext.docid where source = ? and linkid < ? order by linkid desc limit 20")
 	stmtSiteLinks = preparetodie(db, "select linkid, url, dt, source, site, title, summary from links join linktext on links.textid = linktext.docid where site = ? and linkid < ? order by linkid desc limit 20")
 	stmtRandomLinks = preparetodie(db, "select linkid, url, dt, source, site, title, summary from links join linktext on links.textid = linktext.docid order by random() limit 20")
 	stmtSaveSummary = preparetodie(db, "insert into linktext (title, summary, remnants) values (?, ?, ?)")
@@ -352,6 +357,7 @@ func serve() {
 	getters.HandleFunc("/before/{lastlink:[0-9]+}", showlinks)
 	getters.HandleFunc("/l/{linkid:[0-9]+}", showlinks)
 	getters.HandleFunc("/site/{sitename:[[:alnum:].-]+}", showlinks)
+	getters.HandleFunc("/source/{sourcename:[[:alnum:].-]+}", showlinks)
 	getters.HandleFunc("/tag/{tagname:[[:alnum:].-]+}", showlinks)
 	getters.HandleFunc("/random", showlinks)
 	getters.HandleFunc("/rss", showrss)
