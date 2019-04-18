@@ -191,6 +191,9 @@ func savelink(w http.ResponseWriter, r *http.Request) {
 	linkid, _ := strconv.ParseInt(r.FormValue("linkid"), 10, 0)
 
 	title = strings.TrimSpace(title)
+	if strings.ToUpper(title) == title  && strings.IndexByte(title, ' ') != -1 {
+		title = strings.Title(strings.ToLower(title))
+	}
 	summary = strings.TrimSpace(summary)
 	tags = strings.TrimSpace(tags)
 	source = strings.TrimSpace(source)
