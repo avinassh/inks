@@ -1,6 +1,6 @@
 body {
 	background: #121;
-	font-size: 1.5em;
+	font-size: 18px;
 	font-family: monospace;
 	margin: 2em;
 	word-break: break-word;
@@ -11,9 +11,11 @@ body {
 a {
 	color: #aea;
 }
-.header {
+.main, .header {
 	max-width: 1260px;
 	margin: auto;
+}
+.header {
 	margin-bottom: 2em;
 }
 .header form {
@@ -21,10 +23,6 @@ a {
 }
 .header span, .header form {
 	margin-right: 1em;
-}
-.main {
-	max-width: 1260px;
-	margin: auto;
 }
 .link {
 	padding: 0em;
@@ -42,11 +40,10 @@ div.link p {
 .link .title {
 	font-size: 1.5em;
 	margin-left: 0em;
-	margin-bottom: 1em;
+	margin-bottom: 0.5em;
 }
 .link .summary p {
 	margin-top: 1em;
-	margin-left: 2em;
 }
 
 form.link {
@@ -66,17 +63,26 @@ input, textarea {
 	padding: 0.5em;
 }
 form.link input {
-	width: 70%;
+	width: 85%;
 }
 form.link textarea {
 	height: 12em;
-	width: 80%;
+	width: 85%;
 }
 @media screen and (max-width: 740px) {
-	body {
-		font-size: 0.9em;
+	.main {
+		margin-left: -1.5em;
+		margin-right: -1.5em;
 	}
 	.link .title {
 		font-size: 1.3em;
+	}
+	div.link p {
+		margin: 0;
+		margin-left: 1em;
+		margin-right: 1em;
+	}
+	form.link input, form.link textarea {
+		width: 100%;
 	}
 }
