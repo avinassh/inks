@@ -11,17 +11,17 @@ body {
 a {
 	color: #aea;
 }
-.main, .header {
+main, header {
 	max-width: 1260px;
 	margin: auto;
 }
-.header {
+header {
 	margin-bottom: 2em;
 }
-.header form {
+header form {
 	display: inline;
 }
-.header span, .header form {
+header span, header form {
 	margin-right: 1em;
 }
 .link {
@@ -32,7 +32,7 @@ a {
 	margin-bottom: 2em;
 }
 
-div.link p {
+article.link p {
 	margin: 0;
 	margin-left: 2em;
 	margin-right: 2em;
@@ -70,14 +70,14 @@ form.link textarea {
 	width: 85%;
 }
 @media screen and (max-width: 740px) {
-	.main {
+	main {
 		margin-left: -1.5em;
 		margin-right: -1.5em;
 	}
 	.link .title {
 		font-size: 1.3em;
 	}
-	div.link p {
+	article.link p {
 		margin: 0;
 		margin-left: 1em;
 		margin-right: 1em;

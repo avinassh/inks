@@ -1,5 +1,5 @@
 {{ template "header.html" . }}
-<div class="main">
+<main>
 <form action="/savelink" method="POST" class="link">
 <input type="hidden" name="CSRF" value="{{ .SaveCSRF }}">
 <p><input tabindex=1 type="text" name="url" autocomplete=off> - url
@@ -11,6 +11,6 @@
 <p><input tabindex=1 type="text" name="source" autocomplete=off> - source
 <p><input tabindex=1 type="submit" name="submit" value="submit">
 </form>
-</div>
+</main>
 </body>
 </html>
