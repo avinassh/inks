@@ -8,7 +8,7 @@
 <p><input tabindex=1 type="text" name="title" value="{{ .Title }}" autocomplete=off> - title
 <p>
 <textarea tabindex=1 name="summary">
-{{ .Summary }}
+{{ .PlainSummary }}
 </textarea>
 <p><input tabindex=1 type="text" name="tags" value="{{ range .Tags }}{{.}} {{ end }}" autocomplete=off> - tags
 <p><input tabindex=1 type="text" name="source" value="{{ .Source }}" autocomplete=off> - source

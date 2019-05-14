@@ -57,6 +57,7 @@ type Link struct {
 	Site    string
 	Title   string
 	Tags    []string
+	PlainSummary string
 	Summary template.HTML
 	Edit    string
 }
@@ -120,13 +121,13 @@ func readlinks(rows *sql.Rows, err error) ([]*Link, int64) {
 	for rows.Next() {
 		var link Link
 		var dt string
-		err = rows.Scan(&link.ID, &link.URL, &dt, &link.Source, &link.Site, &link.Title, &link.Summary)
+		err = rows.Scan(&link.ID, &link.URL, &dt, &link.Source, &link.Site, &link.Title, &link.PlainSummary)
 		if err != nil {
 			log.Printf("error scanning link: %s", err)
 			continue
 		}
 		link.Posted, _ = time.Parse(dbtimeformat, dt)
-		link.Summary = htmlify(string(link.Summary))
+		link.Summary = htmlify(link.PlainSummary)
 		links = append(links, &link)
 		lastlink = link.ID
 	}
