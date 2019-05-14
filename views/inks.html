@@ -1,5 +1,6 @@
 {{ template "header.html" . }}
 <main>
+{{ $csrf := .SaveCSRF }}
 {{ range .Links }}
 <article class="link">
 <p class="title">{{ .Title }}
@@ -17,6 +18,10 @@
 {{ end }}
 </div>
 <a href="/l/{{ .ID }}">#</a>
+{{ if $csrf }}
+<span style="margin-left:0.75em"><a href="/edit/{{ .ID }}">edit</a>
+</span>
+{{ end }}
 </article>
 {{ end }}
 </main>

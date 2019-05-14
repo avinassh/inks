@@ -2,13 +2,17 @@
 <main>
 <form action="/savelink" method="POST" class="link">
 <input type="hidden" name="CSRF" value="{{ .SaveCSRF }}">
-<p><input tabindex=1 type="text" name="url" autocomplete=off> - url
-<p><input tabindex=1 type="text" name="title" autocomplete=off> - title
+{{ with .Link }}
+<input type="hidden" name="linkid" value="{{ .ID }}">
+<p><input tabindex=1 type="text" name="url" value="{{ .URL }}" autocomplete=off> - url
+<p><input tabindex=1 type="text" name="title" value="{{ .Title }}" autocomplete=off> - title
 <p>
 <textarea tabindex=1 name="summary">
+{{ .Summary }}
 </textarea>
-<p><input tabindex=1 type="text" name="tags" autocomplete=off> - tags
-<p><input tabindex=1 type="text" name="source" autocomplete=off> - source
+<p><input tabindex=1 type="text" name="tags" value="{{ range .Tags }}{{.}} {{ end }}" autocomplete=off> - tags
+<p><input tabindex=1 type="text" name="source" value="{{ .Source }}" autocomplete=off> - source
+{{ end }}
 <p><input tabindex=1 type="submit" name="submit" value="submit">
 </form>
 </main>

@@ -178,6 +178,7 @@ func showlinks(w http.ResponseWriter, r *http.Request) {
 	templinfo := getInfo(r)
 	templinfo["Links"] = links
 	templinfo["LastLink"] = lastlink
+	templinfo["SaveCSRF"] = GetCSRF("savelink", r)
 	err := readviews.ExecuteTemplate(w, "inks.html", templinfo)
 	if err != nil {
 		log.Printf("error templating inks: %s", err)
@@ -287,9 +288,17 @@ func servehtml(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func serveform(w http.ResponseWriter, r *http.Request) {
+	linkid, _ := strconv.ParseInt(mux.Vars(r)["linkid"], 10, 0)
+	link := new(Link)
+	if linkid > 0 {
+		rows, err := stmtGetLink.Query(linkid)
+		links, _ := readlinks(rows, err)
+		link = links[0]
+	}
 	templinfo := getInfo(r)
 	templinfo["SaveCSRF"] = GetCSRF("savelink", r)
-	err := readviews.ExecuteTemplate(w, r.URL.Path[1:]+".html", templinfo)
+	templinfo["Link"] = link
+	err := readviews.ExecuteTemplate(w, "addlink.html", templinfo)
 	if err != nil {
 		log.Print(err)
 	}
@@ -356,6 +365,7 @@ func serve() {
 	getters.HandleFunc("/search", showlinks)
 	getters.HandleFunc("/before/{lastlink:[0-9]+}", showlinks)
 	getters.HandleFunc("/l/{linkid:[0-9]+}", showlinks)
+	getters.Handle("/edit/{linkid:[0-9]+}", LoginRequired(http.HandlerFunc(serveform)))
 	getters.HandleFunc("/site/{sitename:[[:alnum:].-]+}", showlinks)
 	getters.HandleFunc("/source/{sourcename:[[:alnum:].-]+}", showlinks)
 	getters.HandleFunc("/tag/{tagname:[[:alnum:].-]+}", showlinks)
