@@ -52,6 +52,9 @@ article.link p {
 .link .summary p {
 	margin-top: 1em;
 }
+.link .tail {
+	margin-top: 1em;
+}
 
 form.link {
 	padding: 1em;

@@ -17,11 +17,13 @@
 <p>source: <a href="/source/{{ .Source }}">{{ .Source }}</a>
 {{ end }}
 </div>
+<div class="tail">
 <a href="/l/{{ .ID }}">#</a>
 {{ if $csrf }}
 <span style="margin-left:0.75em"><a href="/edit/{{ .ID }}">edit</a>
 </span>
 {{ end }}
+</div>
 </article>
 {{ end }}
 </main>
