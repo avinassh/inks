@@ -28,6 +28,7 @@ header span, header form {
 blockquote {
 	margin-left: 1.5em;
 	padding-left: 0.5em;
+	margin-right: 2em;
 	border-left: 1px solid #474;
 }
 .link {
@@ -90,12 +91,12 @@ form.link textarea {
 		font-size: 1.3em;
 	}
 	article.link p {
-		margin: 0;
 		margin-left: 1em;
 		margin-right: 1em;
 	}
 	blockquote {
 		margin-left: 0.5em;
+		margin-right: 1.0em;
 	}
 	form.link input, form.link textarea {
 		width: 100%;
