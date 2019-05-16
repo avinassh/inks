@@ -37,7 +37,7 @@ func htmlify(s string) template.HTML {
 	s = re_link.ReplaceAllStringFunc(s, linkfn)
 
 	re_i := regexp.MustCompile(`&gt; (.*)`)
-	s = re_i.ReplaceAllString(s, `&gt; <i>$1</i>`)
+	s = re_i.ReplaceAllString(s, `<blockquote>&gt; $1</blockquote>`)
 	renl := regexp.MustCompile("\n+")
 	nlrepl := func(s string) string {
 		if len(s) > 1 {

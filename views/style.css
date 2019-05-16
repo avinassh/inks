@@ -25,6 +25,11 @@ header span, header form {
 	margin-right: 1em;
 	white-space: nowrap;
 }
+blockquote {
+	margin-left: 1.5em;
+	padding-left: 0.5em;
+	border-left: 1px solid #474;
+}
 .link {
 	padding: 0em;
 	color: #8d8;
@@ -88,6 +93,9 @@ form.link textarea {
 		margin: 0;
 		margin-left: 1em;
 		margin-right: 1em;
+	}
+	blockquote {
+		margin-left: 0.5em;
 	}
 	form.link input, form.link textarea {
 		width: 100%;
