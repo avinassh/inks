@@ -30,6 +30,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"humungus.tedunangst.com/r/webs/login"
+	"humungus.tedunangst.com/r/webs/rss"
 )
 
 var readviews *Template
@@ -233,11 +234,11 @@ func savelink(w http.ResponseWriter, r *http.Request) {
 func showrss(w http.ResponseWriter, r *http.Request) {
 	log.Printf("view rss")
 	home := fmt.Sprintf("https://%s/", serverName)
-	feed := RssFeed{
+	feed := rss.Feed{
 		Title:       "inks",
 		Link:        home,
 		Description: "inks rss",
-		FeedImage: &RssFeedImage{
+		Image: &rss.Image{
 			URL:   home + "icon.png",
 			Title: "inks rss",
 			Link:  home,
@@ -252,13 +253,13 @@ func showrss(w http.ResponseWriter, r *http.Request) {
 		if link.Source != "" {
 			summary += "\n<p>source: " + link.Source
 		}
-		feed.Items = append(feed.Items, &RssItem{
+		feed.Items = append(feed.Items, &rss.Item{
 			Title:       link.Title,
-			Description: RssCData{string(link.Summary)},
+			Description: rss.CData{string(link.Summary)},
 			Category:    link.Tags,
 			Link:        link.URL,
 			PubDate:     link.Posted.Format(time.RFC1123),
-			Guid:        RssGuid{Value: tag},
+			Guid:        &rss.Guid{Value: tag},
 		})
 		if link.Posted.After(modtime) {
 			modtime = link.Posted
