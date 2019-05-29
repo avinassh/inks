@@ -31,9 +31,10 @@ import (
 	"github.com/gorilla/mux"
 	"humungus.tedunangst.com/r/webs/login"
 	"humungus.tedunangst.com/r/webs/rss"
+	"humungus.tedunangst.com/r/webs/templates"
 )
 
-var readviews *Template
+var readviews *templates.Template
 
 var serverName = "localhost"
 var tagName = "inks,2019"
@@ -47,16 +48,16 @@ func getInfo(r *http.Request) map[string]interface{} {
 }
 
 type Link struct {
-	ID      int64
-	URL     string
-	Posted  time.Time
-	Source  string
-	Site    string
-	Title   string
-	Tags    []string
+	ID           int64
+	URL          string
+	Posted       time.Time
+	Source       string
+	Site         string
+	Title        string
+	Tags         []string
 	PlainSummary string
-	Summary template.HTML
-	Edit    string
+	Summary      template.HTML
+	Edit         string
 }
 
 func taglinks(links []*Link) {
@@ -177,7 +178,7 @@ func showlinks(w http.ResponseWriter, r *http.Request) {
 	templinfo["Links"] = links
 	templinfo["LastLink"] = lastlink
 	templinfo["SaveCSRF"] = login.GetCSRF("savelink", r)
-	err := readviews.ExecuteTemplate(w, "inks.html", templinfo)
+	err := readviews.Execute(w, "inks.html", templinfo)
 	if err != nil {
 		log.Printf("error templating inks: %s", err)
 	}
@@ -280,7 +281,7 @@ func servecss(w http.ResponseWriter, r *http.Request) {
 }
 func servehtml(w http.ResponseWriter, r *http.Request) {
 	templinfo := getInfo(r)
-	err := readviews.ExecuteTemplate(w, r.URL.Path[1:]+".html", templinfo)
+	err := readviews.Execute(w, r.URL.Path[1:]+".html", templinfo)
 	if err != nil {
 		log.Print(err)
 	}
@@ -296,7 +297,7 @@ func serveform(w http.ResponseWriter, r *http.Request) {
 	templinfo := getInfo(r)
 	templinfo["SaveCSRF"] = login.GetCSRF("savelink", r)
 	templinfo["Link"] = link
-	err := readviews.ExecuteTemplate(w, "addlink.html", templinfo)
+	err := readviews.Execute(w, "addlink.html", templinfo)
 	if err != nil {
 		log.Print(err)
 	}
@@ -345,7 +346,7 @@ func serve() {
 	debug := false
 	getconfig("debug", &debug)
 
-	readviews = ParseTemplates(debug,
+	readviews = templates.Load(debug,
 		"views/header.html",
 		"views/inks.html",
 		"views/addlink.html",
