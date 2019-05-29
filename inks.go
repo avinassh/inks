@@ -29,6 +29,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"humungus.tedunangst.com/r/webs/login"
 )
 
 var readviews *Template
@@ -36,16 +37,11 @@ var readviews *Template
 var serverName = "localhost"
 var tagName = "inks,2019"
 
-type UserInfo struct {
-	UserID   int64
-	Username string
-}
-
 func getInfo(r *http.Request) map[string]interface{} {
 	templinfo := make(map[string]interface{})
 	templinfo["StyleParam"] = getstyleparam()
-	templinfo["UserInfo"] = GetUserInfo(r)
-	templinfo["LogoutCSRF"] = GetCSRF("logout", r)
+	templinfo["UserInfo"] = login.GetUserInfo(r)
+	templinfo["LogoutCSRF"] = login.GetCSRF("logout", r)
 	return templinfo
 }
 
@@ -172,14 +168,14 @@ func showlinks(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if GetUserInfo(r) == nil {
+	if login.GetUserInfo(r) == nil {
 		w.Header().Set("Cache-Control", "max-age=300")
 	}
 
 	templinfo := getInfo(r)
 	templinfo["Links"] = links
 	templinfo["LastLink"] = lastlink
-	templinfo["SaveCSRF"] = GetCSRF("savelink", r)
+	templinfo["SaveCSRF"] = login.GetCSRF("savelink", r)
 	err := readviews.ExecuteTemplate(w, "inks.html", templinfo)
 	if err != nil {
 		log.Printf("error templating inks: %s", err)
@@ -297,7 +293,7 @@ func serveform(w http.ResponseWriter, r *http.Request) {
 		link = links[0]
 	}
 	templinfo := getInfo(r)
-	templinfo["SaveCSRF"] = GetCSRF("savelink", r)
+	templinfo["SaveCSRF"] = login.GetCSRF("savelink", r)
 	templinfo["Link"] = link
 	err := readviews.ExecuteTemplate(w, "addlink.html", templinfo)
 	if err != nil {
@@ -335,7 +331,7 @@ func prepareStmts(db *sql.DB) {
 func serve() {
 	db := opendatabase()
 	prepareStmts(db)
-	LoginInit(db)
+	login.Init(db)
 
 	listener, err := openListener()
 	if err != nil {
@@ -359,14 +355,14 @@ func serve() {
 	}
 
 	mux := mux.NewRouter()
-	mux.Use(LoginChecker)
+	mux.Use(login.Checker)
 
 	getters := mux.Methods("GET").Subrouter()
 	getters.HandleFunc("/", showlinks)
 	getters.HandleFunc("/search", showlinks)
 	getters.HandleFunc("/before/{lastlink:[0-9]+}", showlinks)
 	getters.HandleFunc("/l/{linkid:[0-9]+}", showlinks)
-	getters.Handle("/edit/{linkid:[0-9]+}", LoginRequired(http.HandlerFunc(serveform)))
+	getters.Handle("/edit/{linkid:[0-9]+}", login.Required(http.HandlerFunc(serveform)))
 	getters.HandleFunc("/site/{sitename:[[:alnum:].-]+}", showlinks)
 	getters.HandleFunc("/source/{sourcename:[[:alnum:].-]+}", showlinks)
 	getters.HandleFunc("/tag/{tagname:[[:alnum:].-]+}", showlinks)
@@ -374,12 +370,12 @@ func serve() {
 	getters.HandleFunc("/rss", showrss)
 	getters.HandleFunc("/style.css", servecss)
 	getters.HandleFunc("/login", servehtml)
-	getters.Handle("/addlink", LoginRequired(http.HandlerFunc(serveform)))
-	getters.HandleFunc("/logout", dologout)
+	getters.Handle("/addlink", login.Required(http.HandlerFunc(serveform)))
+	getters.HandleFunc("/logout", login.LogoutFunc)
 
 	posters := mux.Methods("POST").Subrouter()
-	posters.Handle("/savelink", CSRFWrap("savelink", http.HandlerFunc(savelink)))
-	posters.HandleFunc("/dologin", dologin)
+	posters.Handle("/savelink", login.CSRFWrap("savelink", http.HandlerFunc(savelink)))
+	posters.HandleFunc("/dologin", login.LoginFunc)
 
 	err = http.Serve(listener, mux)
 	if err != nil {
