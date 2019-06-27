@@ -41,7 +41,7 @@ var tagName = "inks,2019"
 
 func getInfo(r *http.Request) map[string]interface{} {
 	templinfo := make(map[string]interface{})
-	templinfo["StyleParam"] = getstyleparam()
+	templinfo["StyleParam"] = getstyleparam("views/style.css")
 	templinfo["UserInfo"] = login.GetUserInfo(r)
 	templinfo["LogoutCSRF"] = login.GetCSRF("logout", r)
 	return templinfo
@@ -315,7 +315,7 @@ func preparetodie(db *sql.DB, s string) *sql.Stmt {
 	return stmt
 }
 
-func prepareStmts(db *sql.DB) {
+func prepareStatements(db *sql.DB) {
 	stmtGetLink = preparetodie(db, "select linkid, url, dt, source, site, title, summary from links join linktext on links.textid = linktext.docid where linkid = ?")
 	stmtGetLinks = preparetodie(db, "select linkid, url, dt, source, site, title, summary from links join linktext on links.textid = linktext.docid where linkid < ? order by linkid desc limit 20")
 	stmtSearchLinks = preparetodie(db, "select linkid, url, dt, source, site, title, summary from links join linktext on links.textid = linktext.docid where linktext match ? and linkid < ? order by linkid desc limit 20")
@@ -332,7 +332,7 @@ func prepareStmts(db *sql.DB) {
 
 func serve() {
 	db := opendatabase()
-	prepareStmts(db)
+	prepareStatements(db)
 	login.Init(db)
 
 	listener, err := openListener()
@@ -353,7 +353,9 @@ func serve() {
 		"views/login.html",
 	)
 	if !debug {
-		savedstyleparam = getstyleparam()
+		s := "views/style.css"
+		savedstyleparams[s] = getstyleparam(s)
+
 	}
 
 	mux := mux.NewRouter()

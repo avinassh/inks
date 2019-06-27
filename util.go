@@ -15,6 +15,23 @@
 
 package main
 
+/*
+#include <termios.h>
+
+void
+termecho(int on)
+{
+	struct termios t;
+	tcgetattr(1, &t);
+	if (on)
+		t.c_lflag |= ECHO;
+	else
+		t.c_lflag &= ~ECHO;
+	tcsetattr(1, TCSADRAIN, &t);
+}
+*/
+import "C"
+
 import (
 	"bufio"
 	"crypto/rand"
@@ -32,15 +49,19 @@ import (
 	_ "humungus.tedunangst.com/r/go-sqlite3"
 )
 
-var savedstyleparam string
+var savedstyleparams = make(map[string]string)
 
-func getstyleparam() string {
-	if savedstyleparam != "" {
-		return savedstyleparam
+func getstyleparam(file string) string {
+	if p, ok := savedstyleparams[file]; ok {
+		return p
 	}
-	data, _ := ioutil.ReadFile("views/style.css")
+	data, err := ioutil.ReadFile(file)
+	if err != nil {
+		return ""
+	}
 	hasher := sha512.New()
 	hasher.Write(data)
+
 	return fmt.Sprintf("?v=%.8x", hasher.Sum(nil))
 }
 
@@ -71,11 +92,12 @@ func initdb() {
 	signal.Notify(c, os.Interrupt)
 	go func() {
 		<-c
-		fmt.Printf("\x1b[?12;25h\x1b[0m")
+		C.termecho(1)
 		fmt.Printf("\n")
 		os.Remove(dbname)
 		os.Exit(1)
 	}()
+
 	for _, line := range strings.Split(string(schema), ";") {
 		_, err = db.Exec(line)
 		if err != nil {
@@ -96,11 +118,13 @@ func initdb() {
 		log.Print("that's way too short")
 		return
 	}
-	fmt.Printf("password: \x1b[?25l\x1b[%d;%dm                 \x1b[16D", 30, 40)
+	C.termecho(0)
+	fmt.Printf("password: ")
 	pass, err := r.ReadString('\n')
-	fmt.Printf("\x1b[0m\x1b[?12;25h")
+	C.termecho(1)
+	fmt.Printf("\n")
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
 		return
 	}
 	pass = pass[:len(pass)-1]
@@ -158,6 +182,7 @@ func initdb() {
 		log.Print(err)
 		return
 	}
+	prepareStatements(db)
 	db.Close()
 	fmt.Printf("done.\n")
 	os.Exit(0)
