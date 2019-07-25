@@ -71,6 +71,7 @@ func oneLink(linkid int64) *Link {
 }
 
 func apHandle(w http.ResponseWriter, r *http.Request, linkid int64) {
+	w.Header().Set("Cache-Control", "max-age=300")
 	if r.URL.Path == "/" {
 		apActor(w, r)
 		return
