@@ -52,11 +52,12 @@ func isActivity(ct string) bool {
 	return false
 }
 
-func apDeliver(tries int, rcpt string, msg []byte) {
+func apDeliver(tries int, rcpt string, msg []byte) error {
 	err := postMsg(rcpt, msg)
 	if err != nil {
 		log.Printf("error posting: %s", err)
 	}
+	return err
 }
 
 func oneLink(linkid int64) *Link {
@@ -179,7 +180,10 @@ func apAccept(req junk.Junk) {
 	if err != nil {
 		return
 	}
-	apDeliver(0, box.In, msg)
+	err = apDeliver(0, box.In, msg)
+	if err == nil {
+		stmtSaveFollower.Exec(actor)
+	}
 }
 
 func apInbox(w http.ResponseWriter, r *http.Request) {
@@ -202,7 +206,6 @@ func apInbox(w http.ResponseWriter, r *http.Request) {
 	case "Follow":
 		obj, _ := j.GetString("object")
 		if obj == serverURL {
-			stmtSaveFollower.Exec(who)
 			go apAccept(j)
 		}
 	case "Undo":
