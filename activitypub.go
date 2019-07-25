@@ -55,7 +55,7 @@ func isActivity(ct string) bool {
 func apDeliver(tries int, rcpt string, msg []byte) error {
 	err := postMsg(rcpt, msg)
 	if err != nil {
-		log.Printf("error posting: %s", err)
+		log.Printf("error posting to %s: %s", rcpt, err)
 	}
 	return err
 }
