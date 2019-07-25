@@ -293,6 +293,7 @@ func apPublish(linkid int64) {
 		}
 	}
 	j := apCreate(link)
+	j["@context"] = apContext
 	var buf bytes.Buffer
 	j.Write(&buf)
 	msg := buf.Bytes()
