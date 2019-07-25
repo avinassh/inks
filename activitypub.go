@@ -38,6 +38,7 @@ var apTypes = []string{
 	`application/activity+json`,
 	`application/ld+json`,
 }
+var apBestType = `application/ld+json; profile="https://www.w3.org/ns/activitystreams"`
 
 var serverPubKey = "somekey"
 var serverPrivateKey *rsa.PrivateKey
@@ -83,7 +84,7 @@ func apHandle(w http.ResponseWriter, r *http.Request, linkid int64) {
 	jlink := apNote(link)
 	jlink["@context"] = apContext
 
-	w.Header().Set("Content-Type", apTypes[0])
+	w.Header().Set("Content-Type", apBestType)
 	jlink.Write(w)
 }
 
@@ -127,7 +128,7 @@ func apActor(w http.ResponseWriter, r *http.Request) {
 	k["publicKeyPem"] = serverPubKey
 	j["publicKey"] = k
 
-	w.Header().Set("Content-Type", apTypes[0])
+	w.Header().Set("Content-Type", apBestType)
 	j.Write(w)
 }
 
@@ -323,7 +324,7 @@ func apOutbox(w http.ResponseWriter, r *http.Request) {
 	j["totalItems"] = len(jlinks)
 	j["orderedItems"] = jlinks
 
-	w.Header().Set("Content-Type", apTypes[0])
+	w.Header().Set("Content-Type", apBestType)
 	j.Write(w)
 }
 
@@ -348,7 +349,7 @@ func postMsg(url string, msg []byte) error {
 	if err != nil {
 		return err
 	}
-	req.Header.Set("Content-Type", apTypes[0])
+	req.Header.Set("Content-Type", apBestType)
 	httpsig.SignRequest(serverURL + "#key", serverPrivateKey, req, msg)
 	resp, err := client.Do(req)
 	if err != nil {
