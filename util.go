@@ -35,6 +35,7 @@ import "C"
 import (
 	"bufio"
 	"crypto/rand"
+	"crypto/rsa"
 	"crypto/sha512"
 	"database/sql"
 	"fmt"
@@ -47,6 +48,7 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 	_ "humungus.tedunangst.com/r/go-sqlite3"
+	"humungus.tedunangst.com/r/webs/httpsig"
 )
 
 var savedstyleparams = make(map[string]string)
@@ -178,6 +180,31 @@ func initdb() {
 	rand.Read(randbytes[:])
 	key := fmt.Sprintf("%x", randbytes)
 	_, err = db.Exec("insert into config (key, value) values (?, ?)", "csrfkey", key)
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	k, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	pubkey, err := httpsig.EncodeKey(&k.PublicKey)
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	_, err = db.Exec("insert into config (key, value) values (?, ?)", "pubkey", pubkey)
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	seckey, err := httpsig.EncodeKey(k)
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	_, err = db.Exec("insert into config (key, value) values (?, ?)", "seckey", seckey)
 	if err != nil {
 		log.Print(err)
 		return

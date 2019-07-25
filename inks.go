@@ -29,6 +29,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"humungus.tedunangst.com/r/webs/httpsig"
 	"humungus.tedunangst.com/r/webs/login"
 	"humungus.tedunangst.com/r/webs/rss"
 	"humungus.tedunangst.com/r/webs/templates"
@@ -37,6 +38,7 @@ import (
 var readviews *templates.Template
 
 var serverName = "localhost"
+var serverURL = "https://localhost"
 var tagName = "inks,2019"
 
 func getInfo(r *http.Request) map[string]interface{} {
@@ -142,6 +144,11 @@ func showlinks(w http.ResponseWriter, r *http.Request) {
 	tagname := mux.Vars(r)["tagname"]
 	search := r.FormValue("q")
 
+	if isActivity(r.Header.Get("Accept")) {
+		apHandle(w, r, linkid)
+		return
+	}
+
 	var links []*Link
 	if linkid > 0 {
 		rows, err := stmtGetLink.Query(linkid)
@@ -221,6 +228,7 @@ func savelink(w http.ResponseWriter, r *http.Request) {
 	} else {
 		res, err = stmtSaveLink.Exec(textid, url, dt, source, site)
 		linkid, _ = res.LastInsertId()
+		go apPublish(linkid)
 	}
 	if err != nil {
 		log.Printf("error saving link: %s", err)
@@ -306,6 +314,7 @@ func serveform(w http.ResponseWriter, r *http.Request) {
 var stmtGetLink, stmtGetLinks, stmtSearchLinks, stmtSaveSummary, stmtSaveLink *sql.Stmt
 var stmtTagLinks, stmtSiteLinks, stmtSourceLinks, stmtDeleteTags, stmtUpdateLink, stmtSaveTag *sql.Stmt
 var stmtRandomLinks *sql.Stmt
+var stmtGetFollowers, stmtSaveFollower, stmtDeleteFollower *sql.Stmt
 
 func preparetodie(db *sql.DB, s string) *sql.Stmt {
 	stmt, err := db.Prepare(s)
@@ -328,6 +337,9 @@ func prepareStatements(db *sql.DB) {
 	stmtUpdateLink = preparetodie(db, "update links set textid = ?, url = ?, source = ?, site = ? where linkid = ?")
 	stmtDeleteTags = preparetodie(db, "delete from tags where linkid = ?")
 	stmtSaveTag = preparetodie(db, "insert into tags (linkid, tag) values (?, ?)")
+	stmtGetFollowers = preparetodie(db, "select url from followers")
+	stmtSaveFollower = preparetodie(db, "insert into followers (url) values (?)")
+	stmtDeleteFollower = preparetodie(db, "delete from followers where url = ?")
 }
 
 func serve() {
@@ -341,6 +353,12 @@ func serve() {
 	}
 
 	getconfig("servername", &serverName)
+	serverURL = "https://" + serverName
+	getconfig("pubkey", &serverPubKey)
+	var seckey string
+	getconfig("seckey", &seckey)
+	serverPrivateKey, _, _ = httpsig.DecodeKey(seckey)
+
 	tagName = fmt.Sprintf("%s,%d", serverName, 2019)
 
 	debug := false
@@ -380,6 +398,12 @@ func serve() {
 	posters := mux.Methods("POST").Subrouter()
 	posters.Handle("/savelink", login.CSRFWrap("savelink", http.HandlerFunc(savelink)))
 	posters.HandleFunc("/dologin", login.LoginFunc)
+
+	getters.HandleFunc("/.well-known/webfinger", apFinger)
+	getters.HandleFunc("/outbox", apOutbox)
+	getters.HandleFunc("/followers", ap403)
+	getters.HandleFunc("/following", ap403)
+	posters.HandleFunc("/inbox", apInbox)
 
 	err = http.Serve(listener, mux)
 	if err != nil {
