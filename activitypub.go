@@ -197,8 +197,14 @@ func apInbox(w http.ResponseWriter, r *http.Request) {
 		log.Printf("bad payload: %s", err)
 		http.Error(w, "bad payload", http.StatusNotAcceptable)
 	}
-	keyname, err := httpsig.VerifyRequest(r, payload, httpsig.ActivityPubKeyGetter)
 	what, _ := j.GetString("type")
+	switch what {
+	case "Follow":
+	case "Undo":
+	default:
+		return
+	}
+	keyname, err := httpsig.VerifyRequest(r, payload, httpsig.ActivityPubKeyGetter)
 	who, _ := j.GetString("actor")
 	if !strings.HasPrefix(keyname, who) {
 		log.Printf("suspected forgery: %s vs %s", keyname, who)
