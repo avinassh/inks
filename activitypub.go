@@ -272,7 +272,7 @@ func apCreate(link *Link) junk.Junk {
 }
 
 func apPublish(linkid int64) {
-	time.Sleep(1*time.Second)
+	time.Sleep(1*time.Minute)
 	link := oneLink(linkid)
 	if link == nil {
 		return
