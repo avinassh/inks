@@ -38,7 +38,7 @@ func htmlify(s string) template.HTML {
 
 	re_i := regexp.MustCompile("&gt; (.*)\n")
 	s = re_i.ReplaceAllString(s, "<blockquote>&gt; $1</blockquote>\n")
-	s = strings.ReplaceAll(s, "</blockquote>\n<blockquote>", "\n")
+	s = strings.Replace(s, "</blockquote>\n<blockquote>", "\n", -1)
 	renl := regexp.MustCompile("\n+")
 	nlrepl := func(s string) string {
 		if len(s) > 1 {
