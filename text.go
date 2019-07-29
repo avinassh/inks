@@ -36,8 +36,9 @@ func htmlify(s string) template.HTML {
 	re_link := regexp.MustCompile(`https?://[^\s"]+[\w/)]`)
 	s = re_link.ReplaceAllStringFunc(s, linkfn)
 
-	re_i := regexp.MustCompile(`&gt; (.*)`)
-	s = re_i.ReplaceAllString(s, `<blockquote>&gt; $1</blockquote>`)
+	re_i := regexp.MustCompile("&gt; (.*)\n")
+	s = re_i.ReplaceAllString(s, "<blockquote>&gt; $1</blockquote>\n")
+	s = strings.ReplaceAll(s, "</blockquote>\n<blockquote>", "\n")
 	renl := regexp.MustCompile("\n+")
 	nlrepl := func(s string) string {
 		if len(s) > 1 {
