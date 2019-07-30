@@ -24,6 +24,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -199,6 +200,7 @@ func apInbox(w http.ResponseWriter, r *http.Request) {
 	}
 	what, _ := j.GetString("type")
 	switch what {
+	case "Create":
 	case "Follow":
 	case "Undo":
 	default:
@@ -211,6 +213,11 @@ func apInbox(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	switch what {
+	case "Create":
+		fd, _ := os.OpenFile("savedinbox.json", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+		j.Write(fd)
+		io.WriteString(fd, "\n")
+		fd.Close()
 	case "Follow":
 		obj, _ := j.GetString("object")
 		if obj == serverURL {
