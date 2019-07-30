@@ -4,7 +4,7 @@ import "testing"
 
 func TestHtml(t *testing.T) {
 	in :=
-`> we start with a quote
+		`> we start with a quote
 
 A comment. I liked it.
 
@@ -26,7 +26,7 @@ nice!
 		t.Errorf("failure.\nresult: %s\nexpected: %s\n", rv, out)
 	}
 
-in = `> one quote
+	in = `> one quote
 
 > two quote`
 	out = `<blockquote>&gt; one quote</blockquote>

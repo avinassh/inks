@@ -18,15 +18,15 @@ package main
 import (
 	"bytes"
 	"crypto/rand"
+	"crypto/rsa"
 	"fmt"
 	"html"
-	"sync"
 	"io"
 	"log"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
-	"crypto/rsa"
 
 	"humungus.tedunangst.com/r/webs/httpsig"
 	"humungus.tedunangst.com/r/webs/junk"
@@ -134,8 +134,8 @@ func apActor(w http.ResponseWriter, r *http.Request) {
 }
 
 type Box struct {
-	In string
-	Out string
+	In     string
+	Out    string
 	Shared string
 }
 
@@ -149,7 +149,7 @@ func getBoxes(actor string) (*Box, error) {
 	if ok {
 		return b, nil
 	}
-	j, err := junk.Get(actor, junk.GetArgs { Accept: apTypes[0], Timeout: 5*time.Second })
+	j, err := junk.Get(actor, junk.GetArgs{Accept: apTypes[0], Timeout: 5 * time.Second})
 	if err != nil {
 		return nil, err
 	}
@@ -257,7 +257,7 @@ func apNote(link *Link) junk.Junk {
 	for _, tag := range link.Tags {
 		t := junk.New()
 		t["type"] = "Hashtag"
-		t["name"] = "#"+tag
+		t["name"] = "#" + tag
 		t["url"] = serverURL + "/tag/" + tag
 		tags = append(tags, t)
 	}
@@ -279,7 +279,7 @@ func apCreate(link *Link) junk.Junk {
 }
 
 func apPublish(linkid int64) {
-	time.Sleep(1*time.Minute)
+	time.Sleep(1 * time.Minute)
 	link := oneLink(linkid)
 	if link == nil {
 		return
@@ -357,7 +357,7 @@ func postMsg(url string, msg []byte) error {
 		return err
 	}
 	req.Header.Set("Content-Type", apBestType)
-	httpsig.SignRequest(serverURL + "#key", serverPrivateKey, req, msg)
+	httpsig.SignRequest(serverURL+"#key", serverPrivateKey, req, msg)
 	resp, err := client.Do(req)
 	if err != nil {
 		return err
@@ -369,8 +369,7 @@ func postMsg(url string, msg []byte) error {
 	case 202:
 	default:
 		return fmt.Errorf("http post status: %d", resp.StatusCode)
-	 }
-	 log.Printf("successful post: %s %d", url, resp.StatusCode)
-	 return nil
+	}
+	log.Printf("successful post: %s %d", url, resp.StatusCode)
+	return nil
 }
-
