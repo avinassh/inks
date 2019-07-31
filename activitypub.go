@@ -55,9 +55,15 @@ func isActivity(ct string) bool {
 }
 
 func apDeliver(tries int, rcpt string, msg []byte) error {
+	if tries > 0 {
+		time.Sleep(1 * time.Hour)
+	}
 	err := postMsg(rcpt, msg)
 	if err != nil {
 		log.Printf("error posting to %s: %s", rcpt, err)
+		if tries != -1 && tries < 3 {
+			go apDeliver(tries+1, rcpt, msg)
+		}
 	}
 	return err
 }
@@ -183,7 +189,7 @@ func apAccept(req junk.Junk) {
 	if err != nil {
 		return
 	}
-	err = apDeliver(0, box.In, msg)
+	err = apDeliver(-1, box.In, msg)
 	if err == nil {
 		stmtSaveFollower.Exec(actor)
 	}
