@@ -58,7 +58,7 @@ func prettyquotes(s string) string {
 	ls := "\u2018"
 	rs := "\u2019"
 	ap := rs
-	re_lq := regexp.MustCompile(`"[^.\s]`)
+	re_lq := regexp.MustCompile(`"[^.,\s]`)
 	lq_fn := func(s string) string {
 		return lq + s[1:]
 	}
