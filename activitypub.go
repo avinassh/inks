@@ -279,7 +279,7 @@ func apNote(link *Link) junk.Junk {
 	return j
 }
 
-func apCreate(link *Link) junk.Junk {
+func apCreate(link *Link, update bool) junk.Junk {
 	j := junk.New()
 	j["actor"] = serverURL
 	j["id"] = fmt.Sprintf("%s/l/%d/create", serverURL, link.ID)
@@ -287,14 +287,25 @@ func apCreate(link *Link) junk.Junk {
 	j["published"] = link.Posted.Format(time.RFC3339)
 	j["to"] = apPublic
 	j["cc"] = serverURL + "/followers"
-	j["type"] = "Create"
+	if update {
+		j["type"] = "Update"
+	} else {
+		j["type"] = "Create"
+	}
 	return j
 }
 
-func apPublish(linkid int64) {
-	time.Sleep(1 * time.Minute)
+func apPublish(linkid int64, update bool) {
+	if !update {
+		// wait a minute for things to settle
+		time.Sleep(1 * time.Minute)
+	}
 	link := oneLink(linkid)
 	if link == nil {
+		return
+	}
+	if update && link.Posted.After(time.Now().Add(-1*time.Minute)) {
+		log.Printf("skipping update for new link")
 		return
 	}
 	addrs := make(map[string]bool)
@@ -316,7 +327,7 @@ func apPublish(linkid int64) {
 			}
 		}
 	}
-	j := apCreate(link)
+	j := apCreate(link, update)
 	j["@context"] = apContext
 	var buf bytes.Buffer
 	j.Write(&buf)
@@ -333,7 +344,7 @@ func apOutbox(w http.ResponseWriter, r *http.Request) {
 
 	var jlinks []junk.Junk
 	for _, l := range links {
-		j := apCreate(l)
+		j := apCreate(l, false)
 		jlinks = append(jlinks, j)
 	}
 

@@ -225,10 +225,11 @@ func savelink(w http.ResponseWriter, r *http.Request) {
 	if linkid > 0 {
 		stmtDeleteTags.Exec(linkid)
 		_, err = stmtUpdateLink.Exec(textid, url, source, site, linkid)
+		go apPublish(linkid, true)
 	} else {
 		res, err = stmtSaveLink.Exec(textid, url, dt, source, site)
 		linkid, _ = res.LastInsertId()
-		go apPublish(linkid)
+		go apPublish(linkid, false)
 	}
 	if err != nil {
 		log.Printf("error saving link: %s", err)
