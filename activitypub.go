@@ -213,6 +213,10 @@ func apInbox(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	keyname, err := httpsig.VerifyRequest(r, payload, httpsig.ActivityPubKeyGetter)
+	if err != nil {
+		log.Printf("httpsig error: %s", err)
+		return
+	}
 	who, _ := j.GetString("actor")
 	if !strings.HasPrefix(keyname, who) {
 		log.Printf("suspected forgery: %s vs %s", keyname, who)
