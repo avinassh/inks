@@ -265,7 +265,7 @@ func apNote(link *Link) junk.Junk {
 	j["conversation"] = j["context"]
 	j["id"] = fmt.Sprintf("%s/l/%d", serverURL, link.ID)
 	j["published"] = link.Posted.Format(time.RFC3339)
-	j["summary"] = link.Title
+	j["summary"] = html.EscapeString(link.Title)
 	j["to"] = apPublic
 	j["cc"] = serverURL + "/followers"
 	j["type"] = "Note"
