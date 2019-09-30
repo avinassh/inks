@@ -46,6 +46,7 @@ func getInfo(r *http.Request) map[string]interface{} {
 	templinfo["StyleParam"] = getstyleparam("views/style.css")
 	templinfo["UserInfo"] = login.GetUserInfo(r)
 	templinfo["LogoutCSRF"] = login.GetCSRF("logout", r)
+	templinfo["ServerName"] = serverName
 	return templinfo
 }
 
