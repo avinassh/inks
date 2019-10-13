@@ -63,6 +63,11 @@ type Link struct {
 	Edit         string
 }
 
+type Tag struct {
+	Name  string
+	Count int64
+}
+
 func taglinks(links []*Link) {
 	db := opendatabase()
 	var ids []string
@@ -242,6 +247,43 @@ func savelink(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
+func alltags() []Tag {
+	rows, err := stmtAllTags.Query()
+	if err != nil {
+		log.Printf("error querying tags: %s", err)
+		return nil
+	}
+	defer rows.Close()
+	var tags []Tag
+	for rows.Next() {
+		var t Tag
+		err = rows.Scan(&t.Name, &t.Count)
+		if err != nil {
+			log.Printf("error scanning tag: %s", err)
+			continue
+		}
+		tags = append(tags, t)
+	}
+	sort.Slice(tags, func(i, j int) bool {
+		return tags[i].Name < tags[j].Name
+	})
+	return tags
+}
+
+func showtags(w http.ResponseWriter, r *http.Request) {
+	templinfo := getInfo(r)
+	templinfo["Tags"] = alltags()
+
+	if login.GetUserInfo(r) == nil {
+		w.Header().Set("Cache-Control", "max-age=300")
+	}
+
+	err := readviews.Execute(w, "tags.html", templinfo)
+	if err != nil {
+		log.Printf("error templating inks: %s", err)
+	}
+}
+
 func showrss(w http.ResponseWriter, r *http.Request) {
 	log.Printf("view rss")
 	home := fmt.Sprintf("https://%s/", serverName)
@@ -315,7 +357,7 @@ func serveform(w http.ResponseWriter, r *http.Request) {
 
 var stmtGetLink, stmtGetLinks, stmtSearchLinks, stmtSaveSummary, stmtSaveLink *sql.Stmt
 var stmtTagLinks, stmtSiteLinks, stmtSourceLinks, stmtDeleteTags, stmtUpdateLink, stmtSaveTag *sql.Stmt
-var stmtRandomLinks *sql.Stmt
+var stmtAllTags, stmtRandomLinks *sql.Stmt
 var stmtGetFollowers, stmtSaveFollower, stmtDeleteFollower *sql.Stmt
 
 func preparetodie(db *sql.DB, s string) *sql.Stmt {
@@ -339,6 +381,7 @@ func prepareStatements(db *sql.DB) {
 	stmtUpdateLink = preparetodie(db, "update links set textid = ?, url = ?, source = ?, site = ? where linkid = ?")
 	stmtDeleteTags = preparetodie(db, "delete from tags where linkid = ?")
 	stmtSaveTag = preparetodie(db, "insert into tags (linkid, tag) values (?, ?)")
+	stmtAllTags = preparetodie(db, "select tag as tag, count(tag) as cnt from tags group by tag")
 	stmtGetFollowers = preparetodie(db, "select url from followers")
 	stmtSaveFollower = preparetodie(db, "insert into followers (url) values (?)")
 	stmtDeleteFollower = preparetodie(db, "delete from followers where url = ?")
@@ -369,6 +412,7 @@ func serve() {
 	readviews = templates.Load(debug,
 		"views/header.html",
 		"views/inks.html",
+		"views/tags.html",
 		"views/addlink.html",
 		"views/login.html",
 	)
@@ -391,6 +435,7 @@ func serve() {
 	getters.HandleFunc("/source/{sourcename:[[:alnum:].-]+}", showlinks)
 	getters.HandleFunc("/tag/{tagname:[[:alnum:].-]+}", showlinks)
 	getters.HandleFunc("/random", showlinks)
+	getters.HandleFunc("/tags", showtags)
 	getters.HandleFunc("/rss", showrss)
 	getters.HandleFunc("/style.css", servecss)
 	getters.HandleFunc("/login", servehtml)
