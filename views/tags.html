@@ -1,0 +1,17 @@
+{{ template "header.html" . }}
+<main>
+{{ $letter := 0 }}
+<div class=link>
+<ul>
+{{ range .Tags }}
+{{ if not (eq $letter (index .Name 0)) }}
+{{ $letter = (index .Name 0) }}
+<li><p>
+{{ end }}
+<a href="/tag/{{ .Name }}">{{ .Name }}</a> ({{ .Count }})
+{{ end }}
+</ul>
+</div>
+</main>
+</body>
+</html>
