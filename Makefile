@@ -1,7 +1,7 @@
 
 all: inks
 
-inks: *.go
+inks: go.mod *.go
 	go build -o inks
 
 clean:
