@@ -162,7 +162,7 @@ func getBoxes(actor string) (*Box, error) {
 	}
 	b = new(Box)
 	b.In, _ = j.GetString("inbox")
-	b.Shared, _ = j.FindString([]string{"endpoints", "sharedInbox"})
+	b.Shared, _ = j.GetString("endpoints", "sharedInbox")
 	boxlock.Lock()
 	boxcache[actor] = b
 	boxlock.Unlock()
