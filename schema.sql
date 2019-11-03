@@ -14,7 +14,7 @@ create index idx_tagslinkid on tags(linkid);
 CREATE TABLE config (key text, value text);
 
 CREATE TABLE users (userid integer primary key, username text, hash text);
-CREATE TABLE auth (authid integer primary key, userid integer, hash text);
+CREATE TABLE auth (authid integer primary key, userid integer, hash text, expiry text);
 CREATE INDEX idxusers_username on users(username);
 CREATE INDEX idxauth_userid on auth(userid);
 CREATE INDEX idxauth_hash on auth(hash);
