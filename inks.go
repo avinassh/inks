@@ -184,7 +184,11 @@ func showlinks(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if login.GetUserInfo(r) == nil {
-		w.Header().Set("Cache-Control", "max-age=300")
+		if r.URL.Path == "/random" {
+			w.Header().Set("Cache-Control", "max-age=10")
+		} else {
+			w.Header().Set("Cache-Control", "max-age=300")
+		}
 	}
 
 	templinfo := getInfo(r)
