@@ -195,6 +195,26 @@ func apAccept(req junk.Junk) {
 	}
 }
 
+func apPong(who string, obj string) {
+	j := junk.New()
+	j["@context"] = apContext
+	j["id"] = serverURL + "/pong/" + randomxid()
+	j["type"] = "Pong"
+	j["actor"] = serverURL
+	j["to"] = who
+	j["published"] = time.Now().UTC().Format(time.RFC3339)
+	j["object"] = obj
+
+	box, err := getBoxes(who)
+	if err == nil {
+		err = apDeliver(-1, box.In, j.ToBytes())
+	}
+	if err != nil {
+		log.Printf("can't send pong: %s", err)
+		return
+	}
+}
+
 func apInbox(w http.ResponseWriter, r *http.Request) {
 	var buf bytes.Buffer
 	io.Copy(&buf, r.Body)
@@ -209,6 +229,7 @@ func apInbox(w http.ResponseWriter, r *http.Request) {
 	case "Create":
 	case "Follow":
 	case "Undo":
+	case "Ping":
 	default:
 		return
 	}
@@ -241,6 +262,9 @@ func apInbox(w http.ResponseWriter, r *http.Request) {
 				stmtDeleteFollower.Exec(who)
 			}
 		}
+	case "Ping":
+		obj, _ := j.GetString("id")
+		apPong(who, obj)
 	}
 }
 
