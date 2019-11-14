@@ -37,8 +37,9 @@ func upgradedb() {
 
 	switch ver {
 	case 0:
-		doordie(db, "delete from auth")
-		doordie(db, "alter table auth add column expiry text")
+		doordie(db, "drop table auth")
+		doordie(db, "CREATE TABLE auth (authid integer primary key, userid integer, hash text, expiry text)")
+		doordie(db, "CREATE INDEX idxauth_hash on auth(hash)")
 		doordie(db, "insert into config (key, value) values ('dbversion', 1)")
 		fallthrough
 	case 1:
