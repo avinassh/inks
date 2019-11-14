@@ -393,6 +393,12 @@ func prepareStatements(db *sql.DB) {
 
 func serve() {
 	db := opendatabase()
+	ver := 0
+	getconfig("dbversion", &ver)
+	if ver != dbVersion {
+		log.Fatal("incorrect database version. run upgrade.")
+	}
+
 	prepareStatements(db)
 	login.Init(db)
 
@@ -472,6 +478,8 @@ func main() {
 		initdb()
 	case "run":
 		serve()
+	case "upgrade":
+		upgradedb()
 	default:
 		log.Fatal("unknown command")
 	}

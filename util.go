@@ -86,6 +86,7 @@ func initdb() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	alreadyopendb = db
 	defer func() {
 		os.Remove(dbname)
 		os.Exit(1)
@@ -184,6 +185,7 @@ func initdb() {
 		log.Print(err)
 		return
 	}
+	setconfig("dbversion", dbVersion)
 	k, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
 		log.Print(err)
@@ -213,6 +215,12 @@ func initdb() {
 	db.Close()
 	fmt.Printf("done.\n")
 	os.Exit(0)
+}
+
+func setconfig(key string, val interface{}) error {
+	db := opendatabase()
+	_, err := db.Exec("insert into config (key, value) values (?, ?)", key, val)
+	return err
 }
 
 func opendatabase() *sql.DB {
