@@ -17,11 +17,11 @@ package main
 
 import (
 	"database/sql"
+	"flag"
 	"fmt"
 	"html/template"
 	"log"
 	"net/http"
-	"os"
 	"regexp"
 	"sort"
 	"strconv"
@@ -469,15 +469,30 @@ func serve() {
 }
 
 func main() {
+	flag.Parse()
+	args := flag.Args()
 	cmd := "run"
-	if len(os.Args) > 1 {
-		cmd = os.Args[1]
+	if len(args) > 0 {
+		cmd = args[0]
 	}
 	switch cmd {
 	case "init":
 		initdb()
 	case "run":
 		serve()
+	case "debug":
+		if len(args) != 2 {
+			log.Fatal("need an argument: debug (on|off)")
+		}
+		switch args[1] {
+		case "on":
+			setconfig("debug", 1)
+		case "off":
+			setconfig("debug", 0)
+		default:
+			log.Fatal("argument must be on or off")
+		}
+
 	case "upgrade":
 		upgradedb()
 	default:
