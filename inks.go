@@ -288,22 +288,8 @@ func showtags(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func showrss(w http.ResponseWriter, r *http.Request) {
-	log.Printf("view rss")
-	home := fmt.Sprintf("https://%s/", serverName)
-	feed := rss.Feed{
-		Title:       "inks",
-		Link:        home,
-		Description: "inks rss",
-		Image: &rss.Image{
-			URL:   home + "icon.png",
-			Title: "inks rss",
-			Link:  home,
-		},
-	}
+func fillrss(links []*Link, feed *rss.Feed) time.Time {
 	var modtime time.Time
-	rows, err := stmtGetLinks.Query(123456789012)
-	links, _ := readlinks(rows, err)
 	for _, link := range links {
 		tag := fmt.Sprintf("tag:%s:inks-%d", tagName, link.ID)
 		summary := string(link.Summary)
@@ -322,8 +308,56 @@ func showrss(w http.ResponseWriter, r *http.Request) {
 			modtime = link.Posted
 		}
 	}
+	return modtime
+
+}
+
+func showrss(w http.ResponseWriter, r *http.Request) {
+	log.Printf("view rss")
+	home := fmt.Sprintf("https://%s/", serverName)
+	feed := rss.Feed{
+		Title:       "inks",
+		Link:        home,
+		Description: "inks rss",
+		Image: &rss.Image{
+			URL:   home + "icon.png",
+			Title: "inks rss",
+			Link:  home,
+		},
+	}
+	rows, err := stmtGetLinks.Query(123456789012)
+	links, _ := readlinks(rows, err)
+
+	modtime := fillrss(links, &feed)
+
 	w.Header().Set("Cache-Control", "max-age=300")
 	w.Header().Set("Last-Modified", modtime.Format(http.TimeFormat))
+
+	err = feed.Write(w)
+	if err != nil {
+		log.Printf("error writing rss: %s", err)
+	}
+}
+
+func showrandomrss(w http.ResponseWriter, r *http.Request) {
+	log.Printf("view random rss")
+	home := fmt.Sprintf("https://%s/", serverName)
+	feed := rss.Feed{
+		Title:       "random inks",
+		Link:        home,
+		Description: "random inks rss",
+		Image: &rss.Image{
+			URL:   home + "icon.png",
+			Title: "random inks rss",
+			Link:  home,
+		},
+	}
+	rows, err := stmtRandomLinks.Query()
+	links, _ := readlinks(rows, err)
+
+	fillrss(links, &feed)
+
+	w.Header().Set("Cache-Control", "max-age=86400")
 
 	err = feed.Write(w)
 	if err != nil {
@@ -447,6 +481,7 @@ func serve() {
 	getters.HandleFunc("/random", showlinks)
 	getters.HandleFunc("/tags", showtags)
 	getters.HandleFunc("/rss", showrss)
+	getters.HandleFunc("/random/rss", showrandomrss)
 	getters.HandleFunc("/style.css", servecss)
 	getters.HandleFunc("/login", servehtml)
 	getters.Handle("/addlink", login.Required(http.HandlerFunc(serveform)))
