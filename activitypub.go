@@ -17,6 +17,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"crypto/rand"
 	"crypto/rsa"
 	"fmt"
@@ -410,6 +411,9 @@ func postMsg(url string, msg []byte) error {
 	}
 	req.Header.Set("Content-Type", apBestType)
 	httpsig.SignRequest(serverURL+"#key", serverPrivateKey, req, msg)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
+	defer cancel()
+	req = req.WithContext(ctx)
 	resp, err := client.Do(req)
 	if err != nil {
 		return err
