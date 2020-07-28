@@ -246,6 +246,9 @@ func savelink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	for _, t := range strings.Split(tags, " ") {
+		if t == "" {
+			continue
+		}
 		stmtSaveTag.Exec(linkid, t)
 	}
 	http.Redirect(w, r, "/", http.StatusSeeOther)
