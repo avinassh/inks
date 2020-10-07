@@ -1,5 +1,12 @@
 {{ template "header.html" . }}
 <main>
+{{ if .PageInfo }}
+<div class="link">
+<div class="summary">
+<p>{{ .PageInfo }}
+</div>
+</div>
+{{ end }}
 {{ $csrf := .SaveCSRF }}
 {{ range .Links }}
 <article class="link">

@@ -12,6 +12,7 @@
 <span><a href="/random">random</a></span>
 {{ if .UserInfo }}
 <span><a href="/addlink">add link</a></span>
+<span><a href="/editsource">edit sources</a></span>
 <span><a href="/logout?CSRF={{ .LogoutCSRF }}">logout</a></span>
 {{ else }}
 <span><a href="/rss">rss</a></span>
