@@ -9,10 +9,10 @@
 <header>
 <span><a href="/" title="follow via activitypub">@inks@{{ .ServerName }}</a></span>
 <span><a href="/tags">tags</a></span>
+<span><a href="/sources">sources</a></span>
 <span><a href="/random">random</a></span>
 {{ if .UserInfo }}
 <span><a href="/addlink">add link</a></span>
-<span><a href="/editsource">edit sources</a></span>
 <span><a href="/logout?CSRF={{ .LogoutCSRF }}">logout</a></span>
 {{ else }}
 <span><a href="/rss">rss</a></span>

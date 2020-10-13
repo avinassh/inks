@@ -310,13 +310,70 @@ func showtags(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type Source struct {
+	Name  string
+	Notes string
+	Info  template.HTML
+}
+
+func getsources() []Source {
+	m := make(map[string]*Source)
+	rows, err := stmtKnownSources.Query()
+	if err != nil {
+		log.Fatal(err)
+	}
+	for rows.Next() {
+		s := new(Source)
+		err = rows.Scan(&s.Name, &s.Notes)
+		if err != nil {
+			log.Fatal(err)
+		}
+		s.Info = htmlify(s.Notes)
+		m[s.Name] = s
+	}
+	rows.Close()
+	rows, err = stmtOtherSources.Query()
+	if err != nil {
+		log.Fatal(err)
+	}
+	var sources []Source
+	for rows.Next() {
+		var s Source
+		err = rows.Scan(&s.Name)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if s.Name == "" {
+			continue
+		}
+		if i := m[s.Name]; i != nil {
+			s.Notes = i.Notes
+			s.Info = i.Info
+		}
+		sources = append(sources, s)
+	}
+	sort.Slice(sources, func(i, j int) bool {
+		return sources[i].Name < sources[j].Name
+	})
+	return sources
+}
+
+func showsources(w http.ResponseWriter, r *http.Request) {
+	templinfo := getInfo(r)
+	templinfo["SaveCSRF"] = login.GetCSRF("savesource", r)
+	templinfo["Sources"] = getsources()
+	err := readviews.Execute(w, "sources.html", templinfo)
+	if err != nil {
+		log.Print(err)
+	}
+}
 func savesource(w http.ResponseWriter, r *http.Request) {
 	name := r.FormValue("sourcename")
 	notes := r.FormValue("sourcenotes")
 	stmtDeleteSource.Exec(name)
 	stmtSaveSource.Exec(name, notes)
 
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	http.Redirect(w, r, "/sources", http.StatusSeeOther)
 }
 
 func fillrss(links []*Link, feed *rss.Feed) time.Time {
@@ -423,20 +480,12 @@ func serveform(w http.ResponseWriter, r *http.Request) {
 		log.Print(err)
 	}
 }
-func servesourceform(w http.ResponseWriter, r *http.Request) {
-	templinfo := getInfo(r)
-	templinfo["SaveCSRF"] = login.GetCSRF("savesource", r)
-	err := readviews.Execute(w, "editsource.html", templinfo)
-	if err != nil {
-		log.Print(err)
-	}
-}
 
 var stmtGetLink, stmtGetLinks, stmtSearchLinks, stmtSaveSummary, stmtSaveLink *sql.Stmt
 var stmtTagLinks, stmtSiteLinks, stmtSourceLinks, stmtDeleteTags, stmtUpdateLink, stmtSaveTag *sql.Stmt
 var stmtAllTags, stmtRandomLinks *sql.Stmt
 var stmtGetFollowers, stmtSaveFollower, stmtDeleteFollower *sql.Stmt
-var stmtSaveSource, stmtDeleteSource, stmtSourceInfo *sql.Stmt
+var stmtSaveSource, stmtDeleteSource, stmtSourceInfo, stmtKnownSources, stmtOtherSources *sql.Stmt
 
 func preparetodie(db *sql.DB, s string) *sql.Stmt {
 	stmt, err := db.Prepare(s)
@@ -466,6 +515,8 @@ func prepareStatements(db *sql.DB) {
 	stmtSourceInfo = preparetodie(db, "select notes from sources where name = ?")
 	stmtSaveSource = preparetodie(db, "insert into sources (name, notes) values (?, ?)")
 	stmtDeleteSource = preparetodie(db, "delete from sources where name = ?")
+	stmtKnownSources = preparetodie(db, "select name, notes from sources")
+	stmtOtherSources = preparetodie(db, "select distinct(source) from links")
 }
 
 func serve() {
@@ -501,7 +552,7 @@ func serve() {
 		"views/inks.html",
 		"views/tags.html",
 		"views/addlink.html",
-		"views/editsource.html",
+		"views/sources.html",
 		"views/login.html",
 	)
 	if !debug {
@@ -524,12 +575,12 @@ func serve() {
 	getters.HandleFunc("/tag/{tagname:[[:alnum:].-]+}", showlinks)
 	getters.HandleFunc("/random", showlinks)
 	getters.HandleFunc("/tags", showtags)
+	getters.HandleFunc("/sources", showsources)
 	getters.HandleFunc("/rss", showrss)
 	getters.HandleFunc("/random/rss", showrandomrss)
 	getters.HandleFunc("/style.css", servecss)
 	getters.HandleFunc("/login", servehtml)
 	getters.Handle("/addlink", login.Required(http.HandlerFunc(serveform)))
-	getters.Handle("/editsource", login.Required(http.HandlerFunc(servesourceform)))
 	getters.HandleFunc("/logout", login.LogoutFunc)
 
 	posters := mux.Methods("POST").Subrouter()
