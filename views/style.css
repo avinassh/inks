@@ -64,7 +64,7 @@ form.link {
 	margin: 0em;
 	border: 2px solid #aea;
 }
-td.link {
+tr.link td {
 	padding: 1em;
 	font-size: 1.5em;
 	margin: 1em;
