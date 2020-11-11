@@ -155,6 +155,7 @@ func showlinks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var pageinfo template.HTML
 	var links []*Link
 	if linkid > 0 {
 		rows, err := stmtGetLink.Query(linkid)
@@ -162,21 +163,27 @@ func showlinks(w http.ResponseWriter, r *http.Request) {
 	} else if r.URL.Path == "/random" {
 		rows, err := stmtRandomLinks.Query()
 		links, _ = readlinks(rows, err)
+		pageinfo = "random"
 	} else {
 		if lastlink == 0 {
 			lastlink = 123456789012
 		}
 		if search != "" {
 			links, lastlink = searchlinks(search, lastlink)
+			pageinfo = templates.Sprintf("search: %s", search)
 		} else if tagname != "" {
 			rows, err := stmtTagLinks.Query(tagname, lastlink)
 			links, lastlink = readlinks(rows, err)
+			pageinfo = templates.Sprintf("tag: %s", tagname)
 		} else if sourcename != "" {
 			rows, err := stmtSourceLinks.Query(sourcename, lastlink)
 			links, lastlink = readlinks(rows, err)
+			sourceinfo := htmlify(getsourceinfo(sourcename))
+			pageinfo = templates.Sprintf("source: %s<p>%s", sourcename, sourceinfo)
 		} else if sitename != "" {
 			rows, err := stmtSiteLinks.Query(sitename, lastlink)
 			links, lastlink = readlinks(rows, err)
+			pageinfo = templates.Sprintf("site: %s", sitename)
 		} else {
 			rows, err := stmtGetLinks.Query(lastlink)
 			links, lastlink = readlinks(rows, err)
@@ -195,6 +202,9 @@ func showlinks(w http.ResponseWriter, r *http.Request) {
 	templinfo["Links"] = links
 	templinfo["LastLink"] = lastlink
 	templinfo["SaveCSRF"] = login.GetCSRF("savelink", r)
+	if pageinfo != "" {
+		templinfo["PageInfo"] = pageinfo
+	}
 	err := readviews.Execute(w, "inks.html", templinfo)
 	if err != nil {
 		log.Printf("error templating inks: %s", err)
@@ -254,6 +264,15 @@ func savelink(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
+func getsourceinfo(name string) string {
+	row := stmtSourceInfo.QueryRow(name)
+	var notes string
+	err := row.Scan(&notes)
+	if err != nil {
+	}
+	return notes
+}
+
 func alltags() []Tag {
 	rows, err := stmtAllTags.Query()
 	if err != nil {
@@ -289,6 +308,72 @@ func showtags(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("error templating inks: %s", err)
 	}
+}
+
+type Source struct {
+	Name  string
+	Notes string
+	Info  template.HTML
+}
+
+func getsources() []Source {
+	m := make(map[string]*Source)
+	rows, err := stmtKnownSources.Query()
+	if err != nil {
+		log.Fatal(err)
+	}
+	for rows.Next() {
+		s := new(Source)
+		err = rows.Scan(&s.Name, &s.Notes)
+		if err != nil {
+			log.Fatal(err)
+		}
+		s.Info = htmlify(s.Notes)
+		m[s.Name] = s
+	}
+	rows.Close()
+	rows, err = stmtOtherSources.Query()
+	if err != nil {
+		log.Fatal(err)
+	}
+	var sources []Source
+	for rows.Next() {
+		var s Source
+		err = rows.Scan(&s.Name)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if s.Name == "" {
+			continue
+		}
+		if i := m[s.Name]; i != nil {
+			s.Notes = i.Notes
+			s.Info = i.Info
+		}
+		sources = append(sources, s)
+	}
+	sort.Slice(sources, func(i, j int) bool {
+		return sources[i].Name < sources[j].Name
+	})
+	return sources
+}
+
+func showsources(w http.ResponseWriter, r *http.Request) {
+	templinfo := getInfo(r)
+	templinfo["SaveCSRF"] = login.GetCSRF("savesource", r)
+	templinfo["Sources"] = getsources()
+	err := readviews.Execute(w, "sources.html", templinfo)
+	if err != nil {
+		log.Print(err)
+	}
+}
+func savesource(w http.ResponseWriter, r *http.Request) {
+	name := r.FormValue("sourcename")
+	notes := r.FormValue("sourcenotes")
+	stmtDeleteSource.Exec(name)
+	stmtSaveSource.Exec(name, notes)
+
+	http.Redirect(w, r, "/sources", http.StatusSeeOther)
 }
 
 func fillrss(links []*Link, feed *rss.Feed) time.Time {
@@ -400,6 +485,7 @@ var stmtGetLink, stmtGetLinks, stmtSearchLinks, stmtSaveSummary, stmtSaveLink *s
 var stmtTagLinks, stmtSiteLinks, stmtSourceLinks, stmtDeleteTags, stmtUpdateLink, stmtSaveTag *sql.Stmt
 var stmtAllTags, stmtRandomLinks *sql.Stmt
 var stmtGetFollowers, stmtSaveFollower, stmtDeleteFollower *sql.Stmt
+var stmtSaveSource, stmtDeleteSource, stmtSourceInfo, stmtKnownSources, stmtOtherSources *sql.Stmt
 
 func preparetodie(db *sql.DB, s string) *sql.Stmt {
 	stmt, err := db.Prepare(s)
@@ -426,6 +512,11 @@ func prepareStatements(db *sql.DB) {
 	stmtGetFollowers = preparetodie(db, "select url from followers")
 	stmtSaveFollower = preparetodie(db, "insert into followers (url) values (?)")
 	stmtDeleteFollower = preparetodie(db, "delete from followers where url = ?")
+	stmtSourceInfo = preparetodie(db, "select notes from sources where name = ?")
+	stmtSaveSource = preparetodie(db, "insert into sources (name, notes) values (?, ?)")
+	stmtDeleteSource = preparetodie(db, "delete from sources where name = ?")
+	stmtKnownSources = preparetodie(db, "select name, notes from sources")
+	stmtOtherSources = preparetodie(db, "select distinct(source) from links")
 }
 
 func serve() {
@@ -461,6 +552,7 @@ func serve() {
 		"views/inks.html",
 		"views/tags.html",
 		"views/addlink.html",
+		"views/sources.html",
 		"views/login.html",
 	)
 	if !debug {
@@ -483,6 +575,7 @@ func serve() {
 	getters.HandleFunc("/tag/{tagname:[[:alnum:].-]+}", showlinks)
 	getters.HandleFunc("/random", showlinks)
 	getters.HandleFunc("/tags", showtags)
+	getters.HandleFunc("/sources", showsources)
 	getters.HandleFunc("/rss", showrss)
 	getters.HandleFunc("/random/rss", showrandomrss)
 	getters.HandleFunc("/style.css", servecss)
@@ -492,6 +585,7 @@ func serve() {
 
 	posters := mux.Methods("POST").Subrouter()
 	posters.Handle("/savelink", login.CSRFWrap("savelink", http.HandlerFunc(savelink)))
+	posters.Handle("/savesource", login.CSRFWrap("savesource", http.HandlerFunc(savesource)))
 	posters.HandleFunc("/dologin", login.LoginFunc)
 
 	getters.HandleFunc("/.well-known/webfinger", apFinger)

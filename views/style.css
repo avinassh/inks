@@ -64,6 +64,12 @@ form.link {
 	margin: 0em;
 	border: 2px solid #aea;
 }
+tr.link td {
+	padding: 1em;
+	font-size: 1.5em;
+	margin: 1em;
+	border: 2px solid #aea;
+}
 input, textarea {
 	background: #121;
 	color: #aea;

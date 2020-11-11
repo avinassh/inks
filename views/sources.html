@@ -1,0 +1,22 @@
+{{ template "header.html" . }}
+<main>
+{{ $csrf := .SaveCSRF }}
+<table>
+{{ range .Sources }}
+<tr class="link">
+{{ if $csrf }}
+<form action="/savesource" method="POST" class="link">
+<input type="hidden" name="CSRF" value="{{ $csrf }}">
+<input type="hidden" name="sourcename" value="{{ .Name }}" autocomplete=off>
+<td><a href="/source/{{ .Name }}">{{ .Name }}</a>
+<td><input tabindex=1 type="text" name="sourcenotes" value="{{ .Notes }}" autocomplete=off>
+<td><input tabindex=1 type="submit" name="submit" value="submit">
+</form>
+{{ else }}
+<td><a href="/source/{{ .Name }}">{{ .Name }}</a>{{ with .Info }} - {{ . }}{{ end }}
+{{ end }}
+{{ end }}
+</table>
+</main>
+</body>
+</html>

@@ -15,11 +15,11 @@ A comment. I liked it.
 nice!
 `
 
-	out := `<blockquote>&gt; we start with a quote</blockquote>
+	out := `<blockquote>we start with a quote</blockquote>
 <p>A comment. I liked it.
-<p><blockquote>&gt; feature one<br>
-&gt; feature two<br>
-&gt; feature three</blockquote>
+<p><blockquote>feature one<br>
+feature two<br>
+feature three</blockquote>
 <p>nice!`
 	rv := string(htmlify(in))
 	if rv != out {
@@ -29,8 +29,8 @@ nice!
 	in = `> one quote
 
 > two quote`
-	out = `<blockquote>&gt; one quote</blockquote>
-<p><blockquote>&gt; two quote</blockquote>`
+	out = `<blockquote>one quote</blockquote>
+<p><blockquote>two quote</blockquote>`
 
 	rv = string(htmlify(in))
 	if rv != out {
