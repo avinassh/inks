@@ -19,7 +19,6 @@ import (
 	"bytes"
 	"context"
 	"crypto/rand"
-	"crypto/rsa"
 	"fmt"
 	"html"
 	"io"
@@ -43,7 +42,7 @@ var apTypes = []string{
 var apBestType = `application/ld+json; profile="https://www.w3.org/ns/activitystreams"`
 
 var serverPubKey = "somekey"
-var serverPrivateKey *rsa.PrivateKey
+var serverPrivateKey httpsig.PrivateKey
 
 func isActivity(ct string) bool {
 	ct = strings.ToLower(ct)

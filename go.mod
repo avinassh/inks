@@ -1,10 +1,10 @@
 module humungus.tedunangst.com/r/inks
 
-require (
-	github.com/gorilla/mux v1.7.1
-	golang.org/x/crypto v0.0.0-20190424203555-c05e17bb3b2d
-	humungus.tedunangst.com/r/go-sqlite3 v1.1.3
-	humungus.tedunangst.com/r/webs v0.6.26
-)
+go 1.13
 
-go 1.11
+require (
+	github.com/gorilla/mux v1.8.0
+	golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897
+	humungus.tedunangst.com/r/go-sqlite3 v1.1.3
+	humungus.tedunangst.com/r/webs v0.6.44
+)
