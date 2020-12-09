@@ -211,23 +211,36 @@ func showlinks(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func lastlinkurl() string {
+	row := stmtLastLink.QueryRow()
+	var url string
+	row.Scan(&url)
+	return url
+}
+
 var re_sitename = regexp.MustCompile("//([^/]+)/")
 
 func savelink(w http.ResponseWriter, r *http.Request) {
-	url := r.FormValue("url")
-	title := r.FormValue("title")
-	summary := r.FormValue("summary")
-	tags := r.FormValue("tags")
-	source := r.FormValue("source")
+	url := strings.TrimSpace(r.FormValue("url"))
+	title := strings.TrimSpace(r.FormValue("title"))
+	summary := strings.TrimSpace(r.FormValue("summary"))
+	tags := strings.TrimSpace(r.FormValue("tags"))
+	source := strings.TrimSpace(r.FormValue("source"))
 	linkid, _ := strconv.ParseInt(r.FormValue("linkid"), 10, 0)
 
-	title = strings.TrimSpace(title)
+	if url == "" || title == "" {
+		http.Error(w, "need a little more info please", 400)
+		return
+	}
+
+	if url == lastlinkurl() {
+		http.Error(w, "check again before posting again", 400)
+		return
+	}
+
 	if strings.ToUpper(title) == title && strings.IndexByte(title, ' ') != -1 {
 		title = strings.Title(strings.ToLower(title))
 	}
-	summary = strings.TrimSpace(summary)
-	tags = strings.TrimSpace(tags)
-	source = strings.TrimSpace(source)
 	site := re_sitename.FindString(url)
 	if site != "" {
 		site = site[2 : len(site)-1]
@@ -482,6 +495,7 @@ func serveform(w http.ResponseWriter, r *http.Request) {
 }
 
 var stmtGetLink, stmtGetLinks, stmtSearchLinks, stmtSaveSummary, stmtSaveLink *sql.Stmt
+var stmtLastLink *sql.Stmt
 var stmtTagLinks, stmtSiteLinks, stmtSourceLinks, stmtDeleteTags, stmtUpdateLink, stmtSaveTag *sql.Stmt
 var stmtAllTags, stmtRandomLinks *sql.Stmt
 var stmtGetFollowers, stmtSaveFollower, stmtDeleteFollower *sql.Stmt
@@ -497,6 +511,7 @@ func preparetodie(db *sql.DB, s string) *sql.Stmt {
 
 func prepareStatements(db *sql.DB) {
 	stmtGetLink = preparetodie(db, "select linkid, url, dt, source, site, title, summary from links join linktext on links.textid = linktext.docid where linkid = ?")
+	stmtLastLink = preparetodie(db, "select url from links order by linkid desc limit 1")
 	stmtGetLinks = preparetodie(db, "select linkid, url, dt, source, site, title, summary from links join linktext on links.textid = linktext.docid where linkid < ? order by linkid desc limit 20")
 	stmtSearchLinks = preparetodie(db, "select linkid, url, dt, source, site, title, summary from links join linktext on links.textid = linktext.docid where linktext match ? and linkid < ? order by linkid desc limit 20")
 	stmtTagLinks = preparetodie(db, "select linkid, url, dt, source, site, title, summary from links join linktext on links.textid = linktext.docid where linkid in (select linkid from tags where tag = ?) and linkid < ? order by linkid desc limit 20")
