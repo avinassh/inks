@@ -7,3 +7,16 @@ a nonsocial aggregator
 rss and activitypub support
 
 a catalog of inks for people without l keys
+
+-- build
+
+Install go. Run make.
+
+-- setup
+
+./inks init
+
+-- running
+
+./inks
+
