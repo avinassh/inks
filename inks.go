@@ -26,6 +26,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -220,6 +221,8 @@ func lastlinkurl() string {
 
 var re_sitename = regexp.MustCompile("//([^/]+)/")
 
+var savemtx sync.Mutex
+
 func savelink(w http.ResponseWriter, r *http.Request) {
 	url := strings.TrimSpace(r.FormValue("url"))
 	title := strings.TrimSpace(r.FormValue("title"))
@@ -227,6 +230,9 @@ func savelink(w http.ResponseWriter, r *http.Request) {
 	tags := strings.TrimSpace(r.FormValue("tags"))
 	source := strings.TrimSpace(r.FormValue("source"))
 	linkid, _ := strconv.ParseInt(r.FormValue("linkid"), 10, 0)
+
+	savemtx.Lock()
+	defer savemtx.Unlock()
 
 	if url == "" || title == "" {
 		http.Error(w, "need a little more info please", 400)
