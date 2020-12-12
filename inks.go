@@ -239,7 +239,7 @@ func savelink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if url == lastlinkurl() {
+	if linkid == 0 && url == lastlinkurl() {
 		http.Error(w, "check again before posting again", 400)
 		return
 	}
