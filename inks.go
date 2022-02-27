@@ -549,7 +549,7 @@ func serve() {
 	}
 
 	prepareStatements(db)
-	login.Init(db)
+	login.Init(login.InitArgs{Db: db})
 
 	listener, err := openListener()
 	if err != nil {
