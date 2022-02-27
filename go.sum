@@ -1,7 +1,6 @@
 github.com/gorilla/mux v1.8.0 h1:i40aqfkR1h2SlN9hojwV5ZA91wcXFOvkdNIeFDP5koI=
 github.com/gorilla/mux v1.8.0/go.mod h1:DVbg23sWSpFRCP0SfiEN6jmj59UnW/n46BH5rLB71So=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
-golang.org/x/crypto v0.0.0-20190424203555-c05e17bb3b2d h1:adrbvkTDn9rGnXg2IJDKozEpXXLZN89pdIA+Syt4/u0=
 golang.org/x/crypto v0.0.0-20190424203555-c05e17bb3b2d/go.mod h1:yigFU9vqHzYiE8UmvKecakEJjdnWj3jj499lnFckfCI=
 golang.org/x/crypto v0.0.0-20201208171446-5f87f3452ae9 h1:sYNJzB4J8toYPQTM6pAkcmBRgw9SnQKP9oXCHfgy604=
 golang.org/x/crypto v0.0.0-20201208171446-5f87f3452ae9/go.mod h1:jdWPYTVW3xRLrWPugEBEK3UY2ZEsg3UU495nc5E+M+I=
@@ -14,5 +13,5 @@ golang.org/x/term v0.0.0-20201117132131-f5c789dd3221/go.mod h1:Nr5EML6q2oocZ2LXR
 golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
 humungus.tedunangst.com/r/go-sqlite3 v1.1.3 h1:G2N4wzDS0NbuvrZtQJhh4F+3X+s7BF8b9ga8k38geUI=
 humungus.tedunangst.com/r/go-sqlite3 v1.1.3/go.mod h1:FtEEmQM7U2Ey1TuEEOyY1BmphTZnmiEjPsNLEAkpf/M=
-humungus.tedunangst.com/r/webs v0.6.44 h1:Y/Glxq/j8/AUXHl3cD82GbQ+6Cz3Y3CtvWsi/001w4Q=
-humungus.tedunangst.com/r/webs v0.6.44/go.mod h1:S9sXpVSbgAIa24yYhnMN0C94LKHG+2rioS+NsiDimps=
+humungus.tedunangst.com/r/webs v0.6.49 h1:Tv3Fx2xnv+TINW5gepCpaDP+xhkOWlWp3rYE9FAkP50=
+humungus.tedunangst.com/r/webs v0.6.49/go.mod h1:S9sXpVSbgAIa24yYhnMN0C94LKHG+2rioS+NsiDimps=
