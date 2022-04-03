@@ -336,16 +336,21 @@ func apPublish(linkid int64, update bool) {
 		log.Printf("skipping update for new link")
 		return
 	}
-	addrs := make(map[string]bool)
 	rows, err := stmtGetFollowers.Query()
 	if err != nil {
 		log.Printf("error getting followers")
 		return
 	}
 	defer rows.Close()
+	var actors []string
 	for rows.Next() {
 		var actor string
 		rows.Scan(&actor)
+		actors = append(actors, actor)
+	}
+	rows.Close()
+	addrs := make(map[string]bool)
+	for _, actor := range actors {
 		box, _ := getBoxes(actor)
 		if box != nil {
 			if box.Shared != "" {
